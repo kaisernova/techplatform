@@ -1,0 +1,401 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+	<groupId>com.kaisernova</groupId>
+	<artifactId>techplatform</artifactId>
+	<version>1.0.0-SNAPSHOT</version>
+	<name>techplatform</name>
+	<description>techplatform</description>
+	<packaging>war</packaging>
+	<properties>
+		<maven.compiler.target>21</maven.compiler.target>
+		<failOnMissingWebXml>false</failOnMissingWebXml>
+		<maven.compiler.source>21</maven.compiler.source>
+		<payaraVersion>7.2026.9</payaraVersion>
+		<final.name>firma-express</final.name>
+		<resteasy.version>5.0.0.Final</resteasy.version>
+		<cxf.version>3.3.13</cxf.version>
+		<jersey.version>3.1.9</jersey.version>
+		<jakarta.version>11.0.0</jakarta.version>
+		<microprofile.version>7.1</microprofile.version>
+		<microprofile.config.version>3.1</microprofile.config.version>
+		<postgresql.version>42.7.8</postgresql.version>
+		<primefaces.version>15.0.18</primefaces.version>
+	</properties>
+	<repositories>
+		<repository>
+			<id>prime-repo</id>
+			<name>PrimeFaces Maven Repository</name>
+			<url>https://repository.primefaces.org</url>
+			<layout>default</layout>
+		</repository>
+	</repositories>
+	<dependencies>
+		<dependency>
+			<groupId>com.kaisernova</groupId>
+			<artifactId>kaiser-universal-utils</artifactId>
+			<version>1.0.0-SNAPSHOT</version>
+		</dependency>
+
+		<dependency>
+			<groupId>org.glassfish.jersey.core</groupId>
+			<artifactId>jersey-client</artifactId>
+			<version>${jersey.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.glassfish.jersey.media</groupId>
+			<artifactId>jersey-media-json-jackson</artifactId>
+			<version>${jersey.version}</version>
+		</dependency>
+		<!--
+		https://mvnrepository.com/artifact/org.glassfish.jersey.inject/jersey-hk2 -->
+		<dependency>
+			<groupId>org.glassfish.jersey.inject</groupId>
+			<artifactId>jersey-hk2</artifactId>
+			<version>${jersey.version}</version>
+		</dependency>
+
+		<dependency>
+			<groupId>com.sun.xml.ws</groupId>
+			<artifactId>rt</artifactId>
+			<version>2.3.2</version>
+		</dependency>
+		<dependency>
+			<groupId>jakarta.platform</groupId>
+			<artifactId>jakarta.jakartaee-api</artifactId>
+			<version>${jakarta.version}</version>
+			<scope>provided</scope>
+		</dependency>
+		<!--
+		https://mvnrepository.com/artifact/jakarta.annotation/jakarta.annotation-api -->
+		<dependency>
+			<groupId>jakarta.annotation</groupId>
+			<artifactId>jakarta.annotation-api</artifactId>
+			<version>3.0.0</version>
+			<scope>provided</scope>
+		</dependency>
+		<!--
+		https://mvnrepository.com/artifact/org.jvnet.hyperjaxb3/hyperjaxb3-ejb-runtime -->
+		<dependency>
+			<groupId>org.jvnet.hyperjaxb3</groupId>
+			<artifactId>hyperjaxb3-ejb-runtime</artifactId>
+			<version>0.6.2</version>
+			<scope>provided</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.jvnet.hyperjaxb3</groupId>
+			<artifactId>hyperjaxb3-ejb-plugin</artifactId>
+			<version>0.6.2</version>
+			<scope>provided</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.eclipse.microprofile</groupId>
+			<artifactId>microprofile</artifactId>
+			<version>${microprofile.version}</version>
+			<type>pom</type>
+			<scope>provided</scope>
+		</dependency>
+		<!-- https://mvnrepository.com/artifact/org.projectlombok/lombok -->
+		<dependency>
+			<groupId>org.projectlombok</groupId>
+			<artifactId>lombok</artifactId>
+			<version>1.18.46</version>
+			<scope>provided</scope>
+		</dependency>
+		<!--
+		https://mvnrepository.com/artifact/org.eclipse.microprofile.config/microprofile-config-api -->
+		<dependency>
+			<groupId>org.eclipse.microprofile.config</groupId>
+			<artifactId>microprofile-config-api</artifactId>
+			<version>${microprofile.config.version}</version>
+			<scope>provided</scope>
+		</dependency>
+		<!-- https://mvnrepository.com/artifact/org.postgresql/postgresql -->
+		<dependency>
+			<groupId>org.postgresql</groupId>
+			<artifactId>postgresql</artifactId>
+			<version>${postgresql.version}</version>
+		</dependency>
+		<!--
+		https://mvnrepository.com/artifact/jakarta.servlet/jakarta.servlet-api -->
+		<dependency>
+			<groupId>jakarta.servlet</groupId>
+			<artifactId>jakarta.servlet-api</artifactId>
+			<version>6.1.0</version>
+			<scope>provided</scope>
+		</dependency>
+
+		<!--
+		https://mvnrepository.com/artifact/com.fasterxml.jackson.core/jackson-core -->
+		<dependency>
+			<groupId>com.fasterxml.jackson.core</groupId>
+			<artifactId>jackson-core</artifactId>
+			<version>2.13.0</version>
+		</dependency>
+		<!--
+		https://mvnrepository.com/artifact/com.fasterxml.jackson.core/jackson-databind -->
+		<dependency>
+			<groupId>com.fasterxml.jackson.core</groupId>
+			<artifactId>jackson-databind</artifactId>
+			<version>2.13.0</version>
+		</dependency>
+		<dependency>
+			<groupId>org.primefaces</groupId>
+			<artifactId>primefaces</artifactId>
+			<version>${primefaces.version}</version>
+			<classifier>jakarta</classifier>
+		</dependency>
+		<!--
+		https://mvnrepository.com/artifact/org.primefaces.extensions/primefaces-extensions -->
+		<dependency>
+			<groupId>org.primefaces.extensions</groupId>
+			<artifactId>primefaces-extensions</artifactId>
+			<version>${primefaces.version}</version>
+			<classifier>jakarta</classifier>
+
+		</dependency>
+		<!-- https://mvnrepository.com/artifact/org.primefaces.themes/all-themes -->
+		<dependency>
+			<groupId>org.primefaces.themes</groupId>
+			<artifactId>all-themes</artifactId>
+			<version>1.1.0</version>
+		</dependency>
+		<!--
+		https://mvnrepository.com/artifact/com.googlecode.owasp-java-html-sanitizer/owasp-java-html-sanitizer -->
+		<dependency>
+			<groupId>com.googlecode.owasp-java-html-sanitizer</groupId>
+			<artifactId>owasp-java-html-sanitizer</artifactId>
+			<version>20240325.1</version>
+		</dependency>
+		<!--
+		https://mvnrepository.com/artifact/fr.opensagres.xdocreport/xdocreport -->
+		<dependency>
+			<groupId>fr.opensagres.xdocreport</groupId>
+			<artifactId>xdocreport</artifactId>
+			<version>2.1.0</version>
+		</dependency>
+		<!--
+		https://mvnrepository.com/artifact/org.junit.jupiter/junit-jupiter-api -->
+		<dependency>
+			<groupId>org.junit.jupiter</groupId>
+			<artifactId>junit-jupiter-api</artifactId>
+			<version>5.8.1</version>
+			<scope>test</scope>
+		</dependency>
+		<!--
+		https://mvnrepository.com/artifact/org.mockito/mockito-junit-jupiter -->
+		<dependency>
+			<groupId>org.mockito</groupId>
+			<artifactId>mockito-junit-jupiter</artifactId>
+			<version>4.0.0</version>
+			<scope>test</scope>
+		</dependency>
+		<!-- https://mvnrepository.com/artifact/org.mockito/mockito-core -->
+		<dependency>
+			<groupId>org.mockito</groupId>
+			<artifactId>mockito-core</artifactId>
+			<version>4.0.0</version>
+			<scope>test</scope>
+		</dependency>
+		<!-- https://mvnrepository.com/artifact/org.slf4j/slf4j-api -->
+		<dependency>
+			<groupId>org.slf4j</groupId>
+			<artifactId>slf4j-api</artifactId>
+			<version>2.0.6</version>
+			<scope>test</scope>
+		</dependency>
+		<!-- https://mvnrepository.com/artifact/org.slf4j/slf4j-simple -->
+		<dependency>
+			<groupId>org.slf4j</groupId>
+			<artifactId>slf4j-simple</artifactId>
+			<version>2.0.6</version>
+			<scope>test</scope>
+		</dependency>
+		<!--
+		https://mvnrepository.com/artifact/com.fasterxml.jackson.datatype/jackson-datatype-jsr310 -->
+		<dependency>
+			<groupId>com.fasterxml.jackson.datatype</groupId>
+			<artifactId>jackson-datatype-jsr310</artifactId>
+			<version>2.13.3</version>
+		</dependency>
+		<!-- https://mvnrepository.com/artifact/org.apache.commons/commons-lang3 -->
+		<dependency>
+			<groupId>org.apache.commons</groupId>
+			<artifactId>commons-lang3</artifactId>
+			<version>3.12.0</version>
+		</dependency>
+		<!-- https://mvnrepository.com/artifact/org.apache.commons/commons-text -->
+		<dependency>
+			<groupId>org.apache.commons</groupId>
+			<artifactId>commons-text</artifactId>
+			<version>1.10.0</version>
+		</dependency>
+		<!-- https://mvnrepository.com/artifact/org.glassfish.jaxb/txw2 -->
+		<dependency>
+			<groupId>org.glassfish.jaxb</groupId>
+			<artifactId>txw2</artifactId>
+			<version>4.0.1</version>
+		</dependency>
+		<dependency>
+			<groupId>org.glassfish.jaxb</groupId>
+			<artifactId>jaxb-runtime</artifactId>
+			<version>4.0.1</version>
+		</dependency>
+		<!-- https://mvnrepository.com/artifact/com.sun.xml.bind/jaxb-core -->
+		<dependency>
+			<groupId>com.sun.xml.bind</groupId>
+			<artifactId>jaxb-core</artifactId>
+			<version>4.0.6</version>
+		</dependency>
+		<!--
+		https://mvnrepository.com/artifact/jakarta.xml.bind/jakarta.xml.bind-api -->
+		<dependency>
+			<groupId>jakarta.xml.bind</groupId>
+			<artifactId>jakarta.xml.bind-api</artifactId>
+			<version>4.0.4</version>
+		</dependency>
+		<dependency>
+			<groupId>com.sun.xml.bind</groupId>
+			<artifactId>jaxb-impl</artifactId>
+			<version>4.0.6</version>
+		</dependency>
+		<!-- https://mvnrepository.com/artifact/commons-io/commons-io -->
+		<dependency>
+			<groupId>commons-io</groupId>
+			<artifactId>commons-io</artifactId>
+			<version>2.16.1</version>
+		</dependency>
+		<!-- https://mvnrepository.com/artifact/commons-codec/commons-codec -->
+		<dependency>
+			<groupId>commons-codec</groupId>
+			<artifactId>commons-codec</artifactId>
+			<version>1.15</version>
+		</dependency>
+		<!-- https://mvnrepository.com/artifact/org.apache.poi/poi -->
+		<dependency>
+			<groupId>org.apache.poi</groupId>
+			<artifactId>poi</artifactId>
+			<version>5.2.5</version>
+		</dependency>
+		<!-- https://mvnrepository.com/artifact/org.apache.poi/poi-ooxml -->
+		<dependency>
+			<groupId>org.apache.poi</groupId>
+			<artifactId>poi-ooxml</artifactId>
+			<version>5.2.5</version>
+
+		</dependency>
+
+		<!-- https://mvnrepository.com/artifact/com.amazonaws/aws-java-sdk-s3 -->
+		<dependency>
+			<groupId>com.amazonaws</groupId>
+			<artifactId>aws-java-sdk-s3</artifactId>
+			<version>1.12.773</version>
+		</dependency>
+		<!--
+		https://mvnrepository.com/artifact/org.apache.maven.surefire/maven-surefire-common -->
+		<!-- https://mvnrepository.com/artifact/org.json/json -->
+		<dependency>
+			<groupId>org.json</groupId>
+			<artifactId>json</artifactId>
+			<version>20251224</version>
+		</dependency>
+		<dependency>
+			<groupId>com.google.api-client</groupId>
+			<artifactId>google-api-client</artifactId>
+			<version>1.34.0</version>
+		</dependency>
+		<!-- Source:
+		https://mvnrepository.com/artifact/com.google.apis/google-api-services-calendar -->
+		<dependency>
+			<groupId>com.google.apis</groupId>
+			<artifactId>google-api-services-calendar</artifactId>
+			<version>v3-rev411-1.25.0</version>
+			<scope>compile</scope>
+		</dependency>
+		<dependency>
+			<groupId>com.google.oauth-client</groupId>
+			<artifactId>google-oauth-client-jetty</artifactId>
+			<version>1.34.0</version>
+		</dependency>
+
+		<!-- Google Auth Library for Service Account support (ServiceAccountCredentials, HttpCredentialsAdapter) -->
+		<dependency>
+			<groupId>com.google.auth</groupId>
+			<artifactId>google-auth-library-oauth2-http</artifactId>
+			<version>1.19.0</version>
+		</dependency>
+		<!-- Source: https://mvnrepository.com/artifact/com.sun.mail/jakarta.mail -->
+		<dependency>
+		    <groupId>com.sun.mail</groupId>
+		    <artifactId>jakarta.mail</artifactId>
+		    <version>2.0.2</version>
+		    <scope>compile</scope>
+		</dependency>
+	</dependencies>
+	<build>
+		<finalName>${final.name}</finalName>
+	</build>
+	<profiles>
+		<profile>
+			<id>payara-micro</id>
+			<activation>
+				<activeByDefault>true</activeByDefault>
+			</activation>
+			<build>
+				<plugins>
+					<plugin>
+						<groupId>org.apache.maven.plugins</groupId>
+						<artifactId>maven-surefire-plugin</artifactId>
+						<version>3.5.4</version>
+					</plugin>
+					<plugin>
+						<groupId>org.apache.maven.plugins</groupId>
+						<artifactId>maven-failsafe-plugin</artifactId>
+						<version>3.5.4</version>
+					</plugin>
+					<plugin>
+						<groupId>org.apache.maven.plugins</groupId>
+						<artifactId>maven-compiler-plugin</artifactId>
+						<version>3.14.1</version>
+						<configuration>
+							<source>${maven.compiler.source}</source>
+							<target>${maven.compiler.target}</target>
+							<encoding>UTF-8</encoding>
+						</configuration>
+					</plugin>
+					<plugin>
+						<groupId>org.apache.maven.plugins</groupId>
+						<artifactId>maven-war-plugin</artifactId>
+						<version>3.5.0</version>
+					</plugin>
+					<plugin>
+						<groupId>org.apache.maven.plugins</groupId>
+						<artifactId>maven-resources-plugin</artifactId>
+						<version>3.3.1</version>
+						<configuration>
+							<encoding>UTF-8</encoding>
+						</configuration>
+					</plugin>
+					<plugin>
+						<groupId>fish.payara.maven.plugins</groupId>
+						<artifactId>payara-micro-maven-plugin</artifactId>
+						<version>1.4.0</version>
+						<executions>
+							<execution>
+								<phase>package</phase>
+								<goals>
+									<goal>bundle</goal>
+								</goals>
+							</execution>
+						</executions>
+						<configuration>
+							<payaraVersion>${payaraVersion}</payaraVersion>
+							<useUberJar>true</useUberJar>
+						</configuration>
+					</plugin>
+				</plugins>
+			</build>
+		</profile>
+	</profiles>
+</project>
