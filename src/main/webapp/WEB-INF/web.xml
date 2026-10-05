@@ -1,0 +1,181 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<web-app version="6.0"
+	xmlns="https://jakarta.ee/xml/ns/jakartaee"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="https://jakarta.ee/xml/ns/jakartaee https://jakarta.ee/xml/ns/jakartaee/web-app_6_0.xsd">
+
+	<session-config>
+		<session-timeout>-1</session-timeout>
+	</session-config>
+	<!-- <context-param> <param-name>primefaces.THEME</param-name> <param-value>aristo</param-value> 
+		</context-param> -->
+	<context-param>
+		<param-name>primefaces.TRANSFORM_METADATA</param-name>
+		<param-value>true</param-value>
+	</context-param>
+	<context-param>
+		<param-name>primefaces.SUBMIT</param-name>
+		<param-value>partial</param-value>
+	</context-param>
+
+	<servlet>
+		<servlet-name>Faces Servlet</servlet-name>
+		<servlet-class>jakarta.faces.webapp.FacesServlet</servlet-class>
+		<load-on-startup>1</load-on-startup>
+	</servlet>
+	<servlet-mapping>
+		<servlet-name>Faces Servlet</servlet-name>
+		<url-pattern>*.html</url-pattern>
+	</servlet-mapping>
+	<welcome-file-list>
+		<welcome-file>index.html</welcome-file>
+	</welcome-file-list>
+	<context-param>
+		<param-name>primefaces.CLIENT_SIDE_VALIDATION</param-name>
+		<param-value>true</param-value>
+	</context-param>
+
+	<filter>
+		<filter-name>Character Encoding Filter</filter-name>
+		<filter-class>org.primefaces.webapp.filter.CharacterEncodingFilter</filter-class>
+	</filter>
+	<filter-mapping>
+		<filter-name>Character Encoding Filter</filter-name>
+		<servlet-name>Faces Servlet</servlet-name>
+	</filter-mapping>
+	<error-page>
+		<error-code>404</error-code>
+		<location>/index.html</location>
+	</error-page>
+	<error-page>
+		<error-code>403</error-code>
+		<location>/index.html</location>
+	</error-page>
+	<error-page>
+		<error-code>500</error-code>
+		<location>/index.html</location>
+	</error-page>
+	<error-page>
+		<exception-type>jakarta.faces.application.ViewExpiredException</exception-type>
+		<location>/index.html</location>
+	</error-page>
+	<error-page>
+		<error-code>500</error-code>
+		<location>/index.html</location>
+	</error-page>
+	<security-constraint>
+		<display-name>Restrict raw XHTML Documents</display-name>
+		<web-resource-collection>
+			<web-resource-name>XHTML</web-resource-name>
+			<url-pattern>*.xhtml</url-pattern>
+		</web-resource-collection>
+		<auth-constraint />
+	</security-constraint>
+	<security-constraint>
+		<web-resource-collection>
+			<web-resource-name>publico</web-resource-name>
+			<url-pattern>/resources/css/*</url-pattern>
+			<url-pattern>/resources/js/*</url-pattern>
+			<url-pattern>/resources/imagenes/*</url-pattern>
+			<url-pattern>/resources/img/*</url-pattern>
+			<url-pattern>/jakarta.faces.resource/*</url-pattern>
+			<url-pattern>/index.html</url-pattern>
+			<http-method>GET</http-method>
+			<http-method>POST</http-method>
+		</web-resource-collection>
+	</security-constraint>
+
+	<security-constraint>
+		<web-resource-collection>
+			<web-resource-name>administracion</web-resource-name>
+			<url-pattern>/administracion/*</url-pattern>
+			<http-method>PUT</http-method>
+			<http-method>DELETE</http-method>
+			<http-method>GET</http-method>
+			<http-method>POST</http-method>
+		</web-resource-collection>
+		<auth-constraint>
+			<role-name>ADMINISTRADOR</role-name>
+		</auth-constraint>
+	</security-constraint>
+	<security-constraint>
+		<web-resource-collection>
+			<web-resource-name>administracion</web-resource-name>
+			<url-pattern>/gestion-citas/*</url-pattern>
+			<http-method>PUT</http-method>
+			<http-method>DELETE</http-method>
+			<http-method>GET</http-method>
+			<http-method>POST</http-method>
+		</web-resource-collection>
+		<auth-constraint>
+			<role-name>ADMINISTRADOR</role-name>
+		</auth-constraint>
+	</security-constraint>
+	<security-constraint>
+		<web-resource-collection>
+			<web-resource-name>especialista</web-resource-name>
+			<url-pattern>/especialista/*</url-pattern>
+			<http-method>PUT</http-method>
+			<http-method>DELETE</http-method>
+			<http-method>GET</http-method>
+			<http-method>POST</http-method>
+		</web-resource-collection>
+		<auth-constraint>
+			<role-name>ESPECIALISTA</role-name>
+		</auth-constraint>
+	</security-constraint>
+	<security-constraint>
+		<web-resource-collection>
+			<web-resource-name>paciente</web-resource-name>
+			<url-pattern>/paciente/*</url-pattern>
+			<http-method>PUT</http-method>
+			<http-method>DELETE</http-method>
+			<http-method>GET</http-method>
+			<http-method>POST</http-method>
+		</web-resource-collection>
+		<auth-constraint>
+			<role-name>PACIENTE</role-name>
+		</auth-constraint>
+	</security-constraint>
+	<!-- Security roles used by this web application -->
+	<security-role>
+		<role-name>ADMINISTRADOR</role-name>
+	</security-role>
+	<security-role>
+		<role-name>ESPECIALISTA</role-name>
+	</security-role>
+	<security-role>
+		<role-name>PACIENTE</role-name>
+	</security-role>
+
+	<data-source>
+		<name>java:global/kaiserDS</name>
+		<class-name>org.postgresql.ds.PGSimpleDataSource</class-name>
+		<server-name>${ENV=SERVIDORBDD}</server-name>
+		<port-number>5432</port-number>
+		<database-name>${ENV=NOMBREBDD}</database-name>
+		<user>${ENV=USUARIOBDD}</user>
+		<password>${ENV=CLAVEBDD}</password>
+
+		<property>
+			<name>fish.payara.slow-query-threshold-in-seconds</name>
+			<value>5</value>
+		</property>
+		<property>
+			<name>fish.payara.log-jdbc-calls</name>
+			<value>true</value>
+		</property>
+		<property>
+			<name>fish.payara.is-connection-validation-required</name>
+			<value>true</value>
+		</property>
+		<property>
+			<name>fish.payara.connection-validation-method</name>
+			<value>custom-validation</value>
+		</property>
+		<property>
+			<name>fish.payara.validation-classname</name>
+			<value>org.glassfish.api.jdbc.validation.PostgresConnectionValidation</value>
+		</property>
+	</data-source>
+</web-app>

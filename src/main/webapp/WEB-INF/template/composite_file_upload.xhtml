@@ -1,0 +1,115 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html>
+<ui:component xmlns="http://www.w3.org/1999/xhtml"
+    xmlns:ui="jakarta.faces.facelets"
+    xmlns:cc="http://java.sun.com/jsf/composite"
+    xmlns:f="jakarta.faces.core"
+    xmlns:h="jakarta.faces.html"
+    xmlns:p="http://primefaces.org/ui"
+    xmlns:pass="http://xmlns.jcp.org/jsf/passthrough">
+
+    <!--
+      composite_file_upload.xhtml (WEB-INF/template)
+      Improved, project-specific composite component for file upload with preview and clear button.
+
+      Attributes:
+        - value (required)
+        - label
+        - accept
+        - allowTypes
+        - sizeLimit
+        - required
+        - requiredMessage
+        - invalidFileMessage
+        - invalidSizeMessage
+        - onchangeScript : JS to execute on change (e.g. "optimizeImage(this); previsualizar(this, 'preId');")
+        - dataPVal (pass:data-p-val)
+        - dataPValMsg (pass:data-p-val-msg)
+        - dataPEsCreacion (pass:data-p-es-creacion)
+        - dataIdFechaNacimiento (pass:data-id-fecha-nacimiento)
+        - onvalidationfailureScript : full JS to call on validation failure
+        - validatorId
+        - previewId
+        - previewSrc
+        - previewType (image|pdf|video)
+        - previewStyle
+        - clearOnclick
+        - modifiedValue
+    -->
+
+    <cc:interface>
+        <cc:attribute name="value" required="true" />
+        <cc:attribute name="label" required="false" />
+        <cc:attribute name="accept" required="false" default="image/png,image/jpeg" />
+        <cc:attribute name="allowTypes" required="false" default="/(\\.|\\/)(jpe?g|png)$/" />
+        <cc:attribute name="sizeLimit" required="false" />
+        <cc:attribute name="required" required="false" default="false" />
+        <cc:attribute name="requiredMessage" required="false" default="El Archivo es requerido" />
+        <cc:attribute name="invalidFileMessage" required="false" default="Archivo NO Válido" />
+        <cc:attribute name="invalidSizeMessage" required="false" default="Archivo supera el tamaño máximo" />
+        <cc:attribute name="onchangeScript" required="false" default="" />
+        <cc:attribute name="dataPVal" required="false" default="" />
+        <cc:attribute name="dataPValMsg" required="false" default="" />
+        <cc:attribute name="dataPEsCreacion" required="false" default="" />
+        <cc:attribute name="dataIdFechaNacimiento" required="false" default="" />
+        <cc:attribute name="onvalidationfailureScript" required="false" default="" />
+        <cc:attribute name="validatorId" required="false" />
+        <cc:attribute name="previewId" required="false" default="preview" />
+        <cc:attribute name="previewSrc" required="false" />
+        <cc:attribute name="previewType" required="false" default="image" />
+        <cc:attribute name="previewStyle" required="false" default="" />
+        <cc:attribute name="clearOnclick" required="false" default="" />
+        <cc:attribute name="modifiedValue" required="false" />
+    </cc:interface>
+
+    <cc:implementation>
+        <p:panelGrid columns="1" style="vertical-align:top;" styleClass="no-padding" contentStyleClass="no-padding">
+            <p:fileUpload id="input" value="#{cc.attrs.value}" label="#{cc.attrs.label}" mode="simple" skinSimple="true"
+                validateContentType="true" accept="#{cc.attrs.accept}" allowTypes="#{cc.attrs.allowTypes}"
+                invalidFileMessage="#{cc.attrs.invalidFileMessage}" invalidSizeMessage="#{cc.attrs.invalidSizeMessage}"
+                sizeLimit="#{cc.attrs.sizeLimit}" required="#{cc.attrs.required}" requiredMessage="#{cc.attrs.requiredMessage}"
+                pass:onchange="#{cc.attrs.onchangeScript}"
+                pass:data-p-val="#{cc.attrs.dataPVal}"
+                pass:data-p-val-msg="#{cc.attrs.dataPValMsg}"
+                pass:data-p-es-creacion="#{cc.attrs.dataPEsCreacion}"
+                pass:data-id-fecha-nacimiento="#{cc.attrs.dataIdFechaNacimiento}"
+                onvalidationfailure="#{cc.attrs.onvalidationfailureScript}">
+
+                
+                    
+                
+
+            </p:fileUpload>
+
+            <!-- Image preview -->
+            <h:panelGroup rendered="#{cc.attrs.previewType == 'image'}">
+                <img id="#{cc.attrs.previewId}" src="#{(not empty cc.attrs.previewSrc)? cc.attrs.previewSrc : 'data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs='}"
+                    class="celda_archivos" style="#{(not empty cc.attrs.previewSrc)? cc.attrs.previewStyle : 'display: none; ' + cc.attrs.previewStyle}" />
+            </h:panelGroup>
+
+            <!-- PDF preview -->
+            <h:panelGroup rendered="#{cc.attrs.previewType == 'pdf'}">
+                <iframe id="#{cc.attrs.previewId}" src="#{(not empty cc.attrs.previewSrc)? cc.attrs.previewSrc : 'about:blank'}"
+                    class="celda_archivos" style="#{(not empty cc.attrs.previewSrc)? cc.attrs.previewStyle : 'display: none; ' + cc.attrs.previewStyle}" />
+            </h:panelGroup>
+
+            <!-- Video preview -->
+            <h:panelGroup rendered="#{cc.attrs.previewType == 'video'}">
+                <video id="#{cc.attrs.previewId}" src="#{(not empty cc.attrs.previewSrc)? cc.attrs.previewSrc : ''}"
+                    class="celda_archivos" style="#{(not empty cc.attrs.previewSrc)? cc.attrs.previewStyle : 'display: none; ' + cc.attrs.previewStyle}"
+                    controls="true" autoplay="true">Browser no soporta video</video>
+            </h:panelGroup>
+
+            <!-- Limpiar button; visibility driven by presence of previewSrc by default -->
+            <p:linkButton id="#{cc.attrs.previewId}Limpiar" href="#" value="Limpiar"
+                style="#{(not empty cc.attrs.previewSrc)?'':'display: none;'}" icon="pi pi-eraser"
+                onclick="#{empty cc.attrs.clearOnclick ? 'limpiarInputPorId(\'#{cc.clientId}:input_input\'); quitarPrevisualizar(\'#{cc.attrs.previewId}\'); return false;' : cc.attrs.clearOnclick}" />
+
+            <!-- hidden modified flag -->
+            <h:inputHidden id="inputModificado" value="#{cc.attrs.modifiedValue}">
+                <f:converter converterId="jakarta.faces.Boolean" />
+            </h:inputHidden>
+        </p:panelGrid>
+    </cc:implementation>
+
+</ui:component>

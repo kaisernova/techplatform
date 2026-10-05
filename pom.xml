@@ -13,7 +13,7 @@
 		<failOnMissingWebXml>false</failOnMissingWebXml>
 		<maven.compiler.source>21</maven.compiler.source>
 		<payaraVersion>7.2026.9</payaraVersion>
-		<final.name>firma-express</final.name>
+		<final.name>techplatform</final.name>
 		<resteasy.version>5.0.0.Final</resteasy.version>
 		<cxf.version>3.3.13</cxf.version>
 		<jersey.version>3.1.9</jersey.version>

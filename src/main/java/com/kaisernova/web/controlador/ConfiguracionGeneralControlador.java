@@ -23,23 +23,6 @@ public class ConfiguracionGeneralControlador extends BaseControlador {
 		return configuracionEnMemoriaBean.getValue(NombreParametroConfiguracion.TITULO);
 	}
 
-	public String getUrlVideoPresentacionGeneral() {
-		String url= configuracionEnMemoriaBean.getValue(NombreParametroConfiguracion.URL_VIDEO_PRESENTACION_GENERAL);
-		if(Objects.nonNull(url) && !url.trim().isEmpty()) {
-			return UtilAplicacion.obtenerUrlYoutubeEmbed(url.trim());
-		}
-		return null;
-	}
-	
-	@Transient
-	public String getVideoIdYoutubeGeneral() {
-		String url= configuracionEnMemoriaBean.getValue(NombreParametroConfiguracion.URL_VIDEO_PRESENTACION_GENERAL);
-		if(Objects.nonNull(url) && !url.trim().isEmpty()) {
-			return UtilAplicacion.obtenerVideoIdDeUrlYoutube(url.trim());
-		}
-		return null;
-	}
-	
 	public String getTerminosCondiciones() {
 		return configuracionEnMemoriaBean.getValue(NombreParametroConfiguracion.TERMINOS_Y_CONDICIONES);
 	}

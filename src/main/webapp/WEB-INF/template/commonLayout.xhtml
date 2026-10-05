@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" 
+"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:jsf="jakarta.faces"
+	xmlns:ui="jakarta.faces.facelets" xmlns:f="jakarta.faces.core"
+	xmlns:h="jakarta.faces.html" xmlns:p="http://primefaces.org/ui"
+	xmlns:pass="http://xmlns.jcp.org/jsf/passthrough">
+<h:head>
+	<link rel="stylesheet"
+		href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css" />
+	<h:outputStylesheet name="main.css" library="css" />
+	<h:outputStylesheet name="styles.css" library="css" />
+	<h:outputScript name="main.js" library="js" />
+	<meta name="viewport"
+		content="user-scalable=no, width=device-width, initial-scale=1.0, maximum-scale=1.0" />
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+	<title>#{configuracionGeneralControlador.titulo}</title>
+</h:head>
+<h:body>
+
+	<div>
+		<ui:insert name="header">
+			<ui:include src="/WEB-INF/template/commonHeader.xhtml"></ui:include>
+		</ui:insert>
+	</div>
+	<div id="clck_menu">
+		<ui:insert name="menu">
+			<ui:include src="/WEB-INF/template/menu.xhtml"></ui:include>
+		</ui:insert>
+	</div>
+	<div id="clck_main">
+		<div class="ui-widget">
+			<ui:insert name="main">
+			</ui:insert>
+		</div>
+	</div>
+	<p:dialog header="Actualizar mi clave"
+		widgetVar="claveUsuarioConectadoDialog" height="200" width="600"
+		showEffect="fade" modal="true"
+		rendered="#{not empty request.remoteUser}" responsive="true">
+		<p:panel id="panelClaveUsuarioConectado">
+			<h:form id="formClaveUsuario">
+				<p:growl id="growlClave">
+					<p:autoUpdate disabled="true" />
+				</p:growl>
+
+				<h3>
+					<p:outputLabel
+						value="Clave de [#{sesionUsuarioControlador.usuarioConectado}]" />
+				</h3>
+				<p:panelGrid columns="2">
+					<p:outputLabel value="Clave" />
+					<p:password value="#{sesionUsuarioControlador.usuarioSesion.clave}"
+						autocomplete="new-password" toggleMask="true" redisplay="true" />
+				</p:panelGrid>
+				<p:panelGrid columns="2">
+					<p:commandButton value="Actualizar Clave" validateClient="false"
+						action="#{sesionUsuarioControlador.actualizarClaveUsuarioSesion}"
+						oncomplete="if (!args.validationFailed){PF('claveUsuarioConectadoDialog').hide()}"
+						update="formClaveUsuario:growlClave" id="actualizarClave" />
+					<p:commandButton value="Cancelar"
+						onclick="PF('claveUsuarioConectadoDialog').hide()"
+						partialSubmit="true" immediate="true" validateClient="false" />
+				</p:panelGrid>
+			</h:form>
+		</p:panel>
+	</p:dialog>
+	<ui:include src="/WEB-INF/template/_whatsapp.xhtml" />
+</h:body>
+</html>
