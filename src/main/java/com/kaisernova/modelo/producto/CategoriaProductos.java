@@ -9,6 +9,7 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.SequenceGenerator;
 import jakarta.persistence.Table;
+import jakarta.persistence.Transient;
 import jakarta.persistence.UniqueConstraint;
 import lombok.AllArgsConstructor;
 import lombok.NoArgsConstructor;
@@ -52,11 +53,9 @@ public class CategoriaProductos  extends MappedSuperAuditableActivableClass {
 		return descripcion;
 	}
 
-	@Column(name = "codigo", length = 64)
+	@Column(name = "codigo_padre", length = 64)
 	public String getCodigoPadre() {
 		return codigoPadre;
 	}
-	
-	
-	
+		
 }

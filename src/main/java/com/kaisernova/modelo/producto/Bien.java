@@ -19,8 +19,11 @@ import lombok.Setter;
 @Table(name = "BIEN", schema = "productos")
 public class Bien extends MappedSuperAuditableActivableClass {
 	private Long idBien;
-	
+	private String codigoCategoria;
+	private String codigo;
 
+	private String descripcion;
+	
 	@Id
 	@Column(name = "ID_BIEN")
 	@GeneratedValue(generator = "ID_BIEN_SEQ", strategy = GenerationType.SEQUENCE)
@@ -28,4 +31,5 @@ public class Bien extends MappedSuperAuditableActivableClass {
 	public Long getIdBien() {
 		return idBien;
 	}
+	
 }
