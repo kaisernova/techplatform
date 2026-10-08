@@ -20,20 +20,7 @@ public class MappedSuperAuditableActivableClass  extends MappedSuperActivableCla
 	@XmlTransient private String usuarioCrea;
 	@JsonIgnore
 	@XmlTransient private String usuarioActualiza;
-	@JsonIgnore
-	@XmlTransient private String tipoUsuarioCrea;
-	@JsonIgnore
-	@XmlTransient private String tipoUsuarioActualiza;
-	
-	@Column(name = "TIPO_USUARIO_CREA", length = 128)
-	public String getTipoUsuarioCrea() {
-		return tipoUsuarioCrea;
-	}
-	@Column(name = "TIPO_USUARIO_ACTUALIZA", length = 128)
-	public String getTipoUsuarioActualiza() {
-		return tipoUsuarioActualiza;
-	}
-	
+
 	@Basic
 	@Column(name = "usuario_crea", nullable = false)
 	public String getUsuarioCrea() {

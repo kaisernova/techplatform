@@ -14,6 +14,8 @@ public class BienBean {
     @Inject
     private BienDao bienDao;
 
+    // No injection of BienEnMemoriaBean to avoid circular dependency
+
     public Bien crear(Bien bien) {
         return bienDao.create(bien);
     }
