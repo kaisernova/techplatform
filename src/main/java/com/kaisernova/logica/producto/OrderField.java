@@ -1,7 +1,7 @@
 package com.kaisernova.logica.producto;
 
 /**
- * Fields that can be used to order Bien results.
+ * Fields that can be used to order Producto results.
  */
 public enum OrderField {
     NOMBRE,

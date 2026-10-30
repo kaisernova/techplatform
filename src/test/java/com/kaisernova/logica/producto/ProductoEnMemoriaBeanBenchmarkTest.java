@@ -1,6 +1,6 @@
 package com.kaisernova.logica.producto;
 
-import com.kaisernova.modelo.producto.Bien;
+import com.kaisernova.modelo.producto.Producto;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Assertions;
@@ -10,26 +10,26 @@ import java.util.List;
 import java.util.ArrayList;
 import java.util.stream.Collectors;
 
-public class BienEnMemoriaBeanBenchmarkTest {
+public class ProductoEnMemoriaBeanBenchmarkTest {
 
     @Test
     public void benchmarkIndexedVsNonIndexed_withVariedDataset() {
         // enable n-gram indexing for substring-ish matches during this benchmark
-        System.setProperty("bien.index.ngram", "true");
-        System.setProperty("bien.index.ngram.min", "3");
-        System.setProperty("bien.index.ngram.max", "4");
+        System.setProperty("producto.index.ngram", "true");
+        System.setProperty("producto.index.ngram.min", "3");
+        System.setProperty("producto.index.ngram.max", "4");
 
-        BienEnMemoriaBean bean = new BienEnMemoriaBean();
+        ProductoEnMemoriaBean bean = new ProductoEnMemoriaBean();
         // safe init: bean.init() will skip DAO reloading when running in plain unit test
         bean.init();
 
         final int N = 500; // test with 500 items as requested
 
         // populate a varied sample dataset (use bulkIndex to avoid expensive incremental sorted insertions)
-        List<Bien> items = new ArrayList<>();
+        List<Producto> items = new ArrayList<>();
         for (int i = 1; i <= N; i++) {
-            Bien b = new Bien();
-            b.setIdBien((long) i);
+            Producto b = new Producto();
+            b.setIdProducto((long) i);
             // vary nombre to create lexicographic ordering differences
             b.setNombre((i % 10 == 0 ? "Zeta" : (i % 3 == 0 ? "Alpha" : "Producto")) + " Modelo " + (i % 25));
             b.setMarca("Marca" + (i % 8));
@@ -56,10 +56,10 @@ public class BienEnMemoriaBeanBenchmarkTest {
         long indexedTotal = 0;
         for (int i = 0; i < iterations; i++) {
             long t0 = System.nanoTime();
-            Map<Long, Bien> nonIndexed = bean.buscarPorNombreMarcaDescripcion(qNombre);
+            Map<Long, Producto> nonIndexed = bean.buscarPorNombreMarcaDescripcion(qNombre);
             long t1 = System.nanoTime();
             long t2 = System.nanoTime();
-            Map<Long, Bien> indexed = bean.buscarPorNombreMarcaDescripcionIndexed(qNombre);
+            Map<Long, Producto> indexed = bean.buscarPorNombreMarcaDescripcionIndexed(qNombre);
             long t3 = System.nanoTime();
             nonIndexedTotal += (t1 - t0);
             indexedTotal += (t3 - t2);
@@ -73,20 +73,20 @@ public class BienEnMemoriaBeanBenchmarkTest {
         System.out.println("average non-indexed time_ms=" + avgNonMs + " average indexed time_ms=" + avgIdxMs);
 
         // additional functional checks
-        Map<Long, Bien> byMarca = bean.buscarPorNombreMarcaDescripcion(qMarca);
+        Map<Long, Producto> byMarca = bean.buscarPorNombreMarcaDescripcion(qMarca);
         Assertions.assertTrue(byMarca.size() > 0, "Should find at least one item by marca");
 
-        Map<Long, Bien> byMarcaIdx = bean.buscarPorNombreMarcaDescripcionIndexed(qMarca);
+        Map<Long, Producto> byMarcaIdx = bean.buscarPorNombreMarcaDescripcionIndexed(qMarca);
         Assertions.assertEquals(byMarca.size(), byMarcaIdx.size(), "marca: indexed and non-indexed should match sizes");
 
         // substring-ish search: with n-gram indexing enabled, the indexed path should find matching items
-        Map<Long, Bien> subNon = bean.buscarPorNombreMarcaDescripcion(qSubstring);
-        Map<Long, Bien> subIdx = bean.buscarPorNombreMarcaDescripcionIndexed(qSubstring);
+        Map<Long, Producto> subNon = bean.buscarPorNombreMarcaDescripcion(qSubstring);
+        Map<Long, Producto> subIdx = bean.buscarPorNombreMarcaDescripcionIndexed(qSubstring);
         // both may find matches (since contains can match substrings), but ensure indexed returns a set (sanity)
         Assertions.assertNotNull(subIdx);
 
         // ordering: buscarPorNombreMarcaDescripcionIndexed returns nombre matches first sorted by nombre.
-        Map<Long, Bien> results = bean.buscarPorNombreMarcaDescripcionIndexed("modelo");
+        Map<Long, Producto> results = bean.buscarPorNombreMarcaDescripcionIndexed("modelo");
         List<String> nombres = results.values().stream().map(b -> b.getNombre() == null ? "" : b.getNombre().toLowerCase()).collect(Collectors.toList());
         // assert the list is non-decreasing (case-insensitive alphabetical)
         for (int i = 0; i + 1 < nombres.size(); i++) {
@@ -110,19 +110,19 @@ public class BienEnMemoriaBeanBenchmarkTest {
         double bestTime = Double.MAX_VALUE;
 
         for (double th : thresholds) {
-            System.setProperty("bien.index.df.threshold", String.valueOf(th));
-            System.setProperty("bien.index.ngram", "true");
-            System.setProperty("bien.index.ngram.min", "3");
-            System.setProperty("bien.index.ngram.max", "4");
+            System.setProperty("producto.index.df.threshold", String.valueOf(th));
+            System.setProperty("producto.index.ngram", "true");
+            System.setProperty("producto.index.ngram.min", "3");
+            System.setProperty("producto.index.ngram.max", "4");
 
-            BienEnMemoriaBean bean = new BienEnMemoriaBean();
+            ProductoEnMemoriaBean bean = new ProductoEnMemoriaBean();
             bean.init();
 
             // populate
-            List<Bien> items = new ArrayList<>();
+            List<Producto> items = new ArrayList<>();
             for (int i = 1; i <= N; i++) {
-                Bien b = new Bien();
-                b.setIdBien((long) i);
+                Producto b = new Producto();
+                b.setIdProducto((long) i);
                 b.setNombre((i % 10 == 0 ? "Zeta" : (i % 3 == 0 ? "Alpha" : "Producto")) + " Modelo " + (i % 25));
                 b.setMarca("Marca" + (i % 8));
                 b.setDescripcion("Descripcion con caracteristica clave numero " + (i % 20) + " color " + (i % 5));
@@ -161,20 +161,20 @@ public class BienEnMemoriaBeanBenchmarkTest {
     @Test
     public void benchmarkWith10000Items() {
         // larger dataset to observe index vs linear behaviour
-        System.setProperty("bien.index.ngram", "true");
-        System.setProperty("bien.index.ngram.min", "3");
-        System.setProperty("bien.index.ngram.max", "4");
+        System.setProperty("producto.index.ngram", "true");
+        System.setProperty("producto.index.ngram.min", "3");
+        System.setProperty("producto.index.ngram.max", "4");
         // choose a DF threshold that was reasonable in earlier sweeps
-        System.setProperty("bien.index.df.threshold", "0.5");
+        System.setProperty("producto.index.df.threshold", "0.5");
 
-        BienEnMemoriaBean bean = new BienEnMemoriaBean();
+        ProductoEnMemoriaBean bean = new ProductoEnMemoriaBean();
         bean.init();
 
         final int N = 10_000;
-        List<Bien> items = new ArrayList<>(N);
+        List<Producto> items = new ArrayList<>(N);
         for (int i = 1; i <= N; i++) {
-            Bien b = new Bien();
-            b.setIdBien((long) i);
+            Producto b = new Producto();
+            b.setIdProducto((long) i);
             // create somewhat realistic variety
             String prefix = (i % 7 == 0) ? "Camara" : (i % 5 == 0 ? "Alpha" : "Producto");
             b.setNombre(prefix + " Modelo " + (i % 500));
@@ -230,18 +230,18 @@ public class BienEnMemoriaBeanBenchmarkTest {
     @Test
     public void benchmarkWith100000Items() {
         // very large dataset to observe break-even and index advantage
-        System.setProperty("bien.index.ngram", "false"); // disable ngram for faster index build
-        System.setProperty("bien.index.df.threshold", "0.5");
+        System.setProperty("producto.index.ngram", "false"); // disable ngram for faster index build
+        System.setProperty("producto.index.df.threshold", "0.5");
 
-        BienEnMemoriaBean bean = new BienEnMemoriaBean();
+        ProductoEnMemoriaBean bean = new ProductoEnMemoriaBean();
         bean.init();
 
         final int N = 100_000;
         System.out.println("Building 100k item dataset...");
-        List<Bien> items = new ArrayList<>(N);
+        List<Producto> items = new ArrayList<>(N);
         for (int i = 1; i <= N; i++) {
-            Bien b = new Bien();
-            b.setIdBien((long) i);
+            Producto b = new Producto();
+            b.setIdProducto((long) i);
             String prefix = (i % 50 == 0) ? "Camera" : (i % 20 == 0 ? "Alpha" : "Product");
             b.setNombre(prefix + " Model " + (i % 1000));
             b.setMarca("Brand" + (i % 200));

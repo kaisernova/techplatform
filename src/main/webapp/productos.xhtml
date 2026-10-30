@@ -1,0 +1,99 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<ui:composition template="/WEB-INF/template/commonLayout.xhtml"
+    xmlns="http://www.w3.org/1999/xhtml"
+    xmlns:h="jakarta.faces.html"
+    xmlns:f="jakarta.faces.core"
+    xmlns:ui="jakarta.faces.facelets"
+    xmlns:p="http://primefaces.org/ui">
+
+    <ui:define name="main">
+        <h:form id="formProductos">
+            <p:panel header="Productos" styleClass="card-box">
+                <div class="ui-g ui-fluid">
+                    <div class="ui-g-12 ui-md-6">
+                        <p:inputText id="filtroTexto"
+                                     value="#{productosControlador.filtroTexto}"
+                                     placeholder="Buscar por nombre, marca, código o descripción"
+                                     style="width: 100%;">
+                            <p:ajax event="keyup" listener="#{productosControlador.aplicarFiltros}" update="productosPanel" delay="250" />
+                        </p:inputText>
+                    </div>
+                    <div class="ui-g-12 ui-md-3">
+                        <p:selectOneMenu value="#{productosControlador.ordenSeleccionado}" style="width:100%">
+                            <f:selectItem itemLabel="Ordenar por: Nombre" itemValue="NOMBRE_ASC" />
+                            <f:selectItem itemLabel="Precio: menor a mayor" itemValue="PRECIO_ASC" />
+                            <f:selectItem itemLabel="Precio: mayor a menor" itemValue="PRECIO_DESC" />
+                            <f:selectItem itemLabel="Marca" itemValue="MARCA_ASC" />
+                            <f:selectItem itemLabel="Novedades" itemValue="NUEVOS" />
+                            <p:ajax listener="#{productosControlador.aplicarFiltros}" update="productosPanel" />
+                        </p:selectOneMenu>
+                    </div>
+                    <div class="ui-g-12 ui-md-3">
+                        <p:selectOneButton value="#{productosControlador.layout}">
+                            <f:selectItem itemLabel="Grid" itemValue="grid" />
+                            <f:selectItem itemLabel="Lista" itemValue="list" />
+                            <p:ajax listener="#{productosControlador.aplicarFiltros}" update="productosPanel" />
+                        </p:selectOneButton>
+                    </div>
+                </div>
+
+                <p:outputPanel id="productosPanel">
+                    <p:dataView value="#{productosControlador.productosFiltrados}"
+                                var="producto"
+                                layout="#{productosControlador.layout}"
+                                rows="12"
+                                paginator="true"
+                                paginatorPosition="bottom"
+                                styleClass="product-data-view">
+
+                        <p:dataViewGridItem>
+                            <p:panel header="#{producto.nombre}" style="height:100%; min-height:220px;">
+                                <div style="display:flex; flex-direction:column; gap:8px;">
+                                    <div><strong>#{producto.marca}</strong></div>
+                                    <div><span class="ui-tag">#{productosControlador.obtenerNombreCategoria(producto.codigoCategoria)}</span></div>
+                                    <div><strong>Código:</strong> #{producto.codigo}</div>
+                                    <div><strong>Precio:</strong> #{productosControlador.getPrecioFormateado(producto)}</div>
+                                    <div>
+                                        <p:outputLabel value="#{producto.descripcion}" style="display:block; max-height:60px; overflow:hidden;" />
+                                    </div>
+                                </div>
+                            </p:panel>
+                        </p:dataViewGridItem>
+
+                        <p:dataViewListItem>
+                            <p:panel style="margin-bottom:12px;">
+                                <div class="ui-g">
+                                    <div class="ui-g-12 ui-md-2">
+                                        <div style="background:#f5f5f5; border-radius:8px; height:90px; display:flex; align-items:center; justify-content:center; font-size:26px; color:#666;">
+                                            <i class="pi pi-box" />
+                                        </div>
+                                    </div>
+                                    <div class="ui-g-12 ui-md-7">
+                                        <h:outputText value="#{producto.nombre}" style="font-size:1.2rem; font-weight:700;" />
+                                        <div><strong>Marca:</strong> #{producto.marca}</div>
+                                        <div><strong>Categoría:</strong> #{productosControlador.obtenerNombreCategoria(producto.codigoCategoria)}</div>
+                                        <div><strong>Código:</strong> #{producto.codigo}</div>
+                                        <div><strong>Descripción:</strong> #{producto.descripcion}</div>
+                                    </div>
+                                    <div class="ui-g-12 ui-md-3" style="text-align:right;">
+                                        <div style="font-size:1.4rem; font-weight:700; color:#1976d2; margin-bottom:10px;">
+                                            #{productosControlador.getPrecioFormateado(producto)}
+                                        </div>
+                                        <p:button value="Ver detalle" outcome="/productos.xhtml" styleClass="ui-button-outlined" />
+                                    </div>
+                                </div>
+                            </p:panel>
+                        </p:dataViewListItem>
+                    </p:dataView>
+
+                    <p:outputPanel rendered="#{empty productosControlador.productosFiltrados}">
+                        <div style="padding:20px; text-align:center; color:#666;">
+                            No hay productos que coincidan con la búsqueda.
+                        </div>
+                    </p:outputPanel>
+                </p:outputPanel>
+            </p:panel>
+        </h:form>
+    </ui:define>
+</ui:composition>

@@ -25,13 +25,13 @@ import jakarta.ejb.Singleton;
 import jakarta.ejb.Startup;
 import jakarta.inject.Inject;
 
-import com.kaisernova.modelo.producto.Bien;
+import com.kaisernova.modelo.producto.Producto;
 
 @Singleton
 @Startup
-public class BienEnMemoriaBean {
-    private final static Map<Long, Bien> BIEN_MAP = new ConcurrentHashMap<>();
-    // inverted indexes: token -> posting list of Bien ids (kept sorted by nombre)
+public class ProductoEnMemoriaBean {
+    private final static Map<Long, Producto> PRODUCTO_MAP = new ConcurrentHashMap<>();
+    // inverted indexes: token -> posting list of Producto ids (kept sorted by nombre)
     private final Map<String, List<Long>> NOMBRE_INDEX = new ConcurrentHashMap<>();
     private final Map<String, List<Long>> MARCA_INDEX = new ConcurrentHashMap<>();
     private final Map<String, List<Long>> DESCRIPCION_INDEX = new ConcurrentHashMap<>();
@@ -41,7 +41,7 @@ public class BienEnMemoriaBean {
     private Logger logger;
 
     @Inject
-    private com.kaisernova.dao.producto.BienDao bienDao;
+    private com.kaisernova.dao.producto.ProductoDao productoDao;
 
     // configurable indexing/tokenization parameters (loaded at init)
     private boolean enableNgramIndex = false; // toggle for substring n-gram indexing
@@ -60,18 +60,18 @@ public class BienEnMemoriaBean {
     public void init() {
         // load optional system properties to tune tokenization/indexing without code changes
         try {
-            String ngramProp = System.getProperty("bien.index.ngram");
+            String ngramProp = System.getProperty("producto.index.ngram");
             if (ngramProp != null) enableNgramIndex = Boolean.parseBoolean(ngramProp);
-            String ngramMinProp = System.getProperty("bien.index.ngram.min");
+            String ngramMinProp = System.getProperty("producto.index.ngram.min");
             if (ngramMinProp != null) ngramMin = Integer.parseInt(ngramMinProp);
-            String ngramMaxProp = System.getProperty("bien.index.ngram.max");
+            String ngramMaxProp = System.getProperty("producto.index.ngram.max");
             if (ngramMaxProp != null) ngramMax = Integer.parseInt(ngramMaxProp);
-            String dfProp = System.getProperty("bien.index.df.threshold");
+            String dfProp = System.getProperty("producto.index.df.threshold");
             if (dfProp != null) tokenDfThreshold = Double.parseDouble(dfProp);
 
             // default stopwords
             STOPWORDS.addAll(java.util.Set.of("de","la","el","y","en","con","para","por","un","una","los","las","del","al"));
-            String sw = System.getProperty("bien.index.stopwords");
+            String sw = System.getProperty("producto.index.stopwords");
             if (sw != null && !sw.isBlank()) {
                 for (String s : sw.split(",")) {
                     String t = s.trim().toLowerCase();
@@ -84,62 +84,62 @@ public class BienEnMemoriaBean {
         }
 
         // Only reload from DAO when available (avoids NPE when running outside container e.g. tests)
-        if (bienDao != null) {
+        if (productoDao != null) {
             recargar();
         } else {
-            if (logger != null) logger.info("[init] bienDao not available, skipping recargar()");
+            if (logger != null) logger.info("[init] productoDao not available, skipping recargar()");
         }
     }
 
     @Lock(LockType.WRITE)
     public void recargar() {
         logger.info("[recargar] POR RECARGAR BIENES");
-        BIEN_MAP.clear();
-        var bienes = bienDao.findAllActivos();
-        if (bienes != null) {
-            for (Bien bien : bienes) {
-                BIEN_MAP.put(bien.getIdBien(), bien);
+        PRODUCTO_MAP.clear();
+        var productos = productoDao.findAllActivos();
+        if (productos != null) {
+            for (Producto producto : productos) {
+                PRODUCTO_MAP.put(producto.getIdProducto(), producto);
             }
         }
         // rebuild normalized cache
         NORMALIZED_NOMBRE_CACHE.clear();
-        for (Bien bien : BIEN_MAP.values()) {
-            if (bien != null && bien.getIdBien() != null) {
-                NORMALIZED_NOMBRE_CACHE.put(bien.getIdBien(), normalize(bien.getNombre()));
+        for (Producto producto : PRODUCTO_MAP.values()) {
+            if (producto != null && producto.getIdProducto() != null) {
+                NORMALIZED_NOMBRE_CACHE.put(producto.getIdProducto(), normalize(producto.getNombre()));
             }
         }
         // rebuild inverted indexes
         NOMBRE_INDEX.clear();
         MARCA_INDEX.clear();
         DESCRIPCION_INDEX.clear();
-        for (Bien bien : BIEN_MAP.values()) {
-            if (bien == null || bien.getIdBien() == null) continue;
-            long id = bien.getIdBien();
-            indexText(NOMBRE_INDEX, bien.getNombre(), id);
-            indexText(MARCA_INDEX, bien.getMarca(), id);
-            indexText(DESCRIPCION_INDEX, bien.getDescripcion(), id);
+        for (Producto producto : PRODUCTO_MAP.values()) {
+            if (producto == null || producto.getIdProducto() == null) continue;
+            long id = producto.getIdProducto();
+            indexText(NOMBRE_INDEX, producto.getNombre(), id);
+            indexText(MARCA_INDEX, producto.getMarca(), id);
+            indexText(DESCRIPCION_INDEX, producto.getDescripcion(), id);
         }
-        logger.info("[recargar] BIEN_MAP size=" + BIEN_MAP.size());
+        logger.info("[recargar] PRODUCTO_MAP size=" + PRODUCTO_MAP.size());
     }
 
     /**
-     * Bulk index a collection of Bien items. This builds posting lists in batch and sorts once,
+     * Bulk index a collection of Producto items. This builds posting lists in batch and sorts once,
      * which is much faster than repeatedly inserting into sorted lists.
      */
     @Lock(LockType.WRITE)
-    public void bulkIndex(Collection<Bien> bienes) {
-        if (bienes == null) return;
-        BIEN_MAP.clear();
+    public void bulkIndex(Collection<Producto> productos) {
+        if (productos == null) return;
+        PRODUCTO_MAP.clear();
         NORMALIZED_NOMBRE_CACHE.clear();
         NOMBRE_INDEX.clear();
         MARCA_INDEX.clear();
         DESCRIPCION_INDEX.clear();
 
-        // first pass: populate BIEN_MAP and normalized cache
-        for (Bien b : bienes) {
-            if (b == null || b.getIdBien() == null) continue;
-            BIEN_MAP.put(b.getIdBien(), b);
-            NORMALIZED_NOMBRE_CACHE.put(b.getIdBien(), normalize(b.getNombre()));
+        // first pass: populate PRODUCTO_MAP and normalized cache
+        for (Producto b : productos) {
+            if (b == null || b.getIdProducto() == null) continue;
+            PRODUCTO_MAP.put(b.getIdProducto(), b);
+            NORMALIZED_NOMBRE_CACHE.put(b.getIdProducto(), normalize(b.getNombre()));
         }
 
         // temporary unsorted postings
@@ -147,8 +147,8 @@ public class BienEnMemoriaBean {
         Map<String, List<Long>> tmpMarca = new java.util.HashMap<>();
         Map<String, List<Long>> tmpDesc = new java.util.HashMap<>();
 
-        for (Bien b : BIEN_MAP.values()) {
-            long id = b.getIdBien();
+        for (Producto b : PRODUCTO_MAP.values()) {
+            long id = b.getIdProducto();
             String nn = normalize(b.getNombre());
             if (nn != null && !nn.isEmpty()) {
                 for (String t : TOKEN_SPLIT.split(nn)) {
@@ -183,8 +183,8 @@ public class BienEnMemoriaBean {
         for (Map.Entry<String, List<Long>> e : tmpNombre.entrySet()) {
             List<Long> list = e.getValue();
             list.sort((a, b) -> {
-                String na = NORMALIZED_NOMBRE_CACHE.getOrDefault(a, normalize(BIEN_MAP.get(a) == null ? null : BIEN_MAP.get(a).getNombre()));
-                String nb = NORMALIZED_NOMBRE_CACHE.getOrDefault(b, normalize(BIEN_MAP.get(b) == null ? null : BIEN_MAP.get(b).getNombre()));
+                String na = NORMALIZED_NOMBRE_CACHE.getOrDefault(a, normalize(PRODUCTO_MAP.get(a) == null ? null : PRODUCTO_MAP.get(a).getNombre()));
+                String nb = NORMALIZED_NOMBRE_CACHE.getOrDefault(b, normalize(PRODUCTO_MAP.get(b) == null ? null : PRODUCTO_MAP.get(b).getNombre()));
                 int cmp = na.compareTo(nb);
                 if (cmp != 0) return cmp;
                 return a.compareTo(b);
@@ -224,39 +224,39 @@ public class BienEnMemoriaBean {
         }
 
         if (logger != null) {
-            logger.info("[bulkIndex] built indexes, BIEN_MAP size=" + BIEN_MAP.size());
+            logger.info("[bulkIndex] built indexes, PRODUCTO_MAP size=" + PRODUCTO_MAP.size());
         }
     }
 
     @Lock(LockType.READ)
-    public Bien obtenerPorId(Long id) {
-        return BIEN_MAP.get(id);
+    public Producto obtenerPorId(Long id) {
+        return PRODUCTO_MAP.get(id);
     }
 
     @Lock(LockType.READ)
-    public Collection<Bien> obtenerTodos() {
-        return BIEN_MAP.values();
+    public Collection<Producto> obtenerTodos() {
+        return PRODUCTO_MAP.values();
     }
 
     @Lock(LockType.READ)
-    public Bien obtenerPorCodigo(String codigo) {
+    public Producto obtenerPorCodigo(String codigo) {
         if (codigo == null || codigo.isEmpty()) {
             return null;
         }
-        return BIEN_MAP.values().stream()
+        return PRODUCTO_MAP.values().stream()
                 .filter(b -> codigo.equals(b.getCodigo()))
                 .findFirst()
                 .orElse(null);
     }
 
     @Lock(LockType.READ)
-    public int getTotalBienes() {
-        return BIEN_MAP.size();
+    public int getTotalProductoes() {
+        return PRODUCTO_MAP.size();
     }
 
     @Lock(LockType.READ)
-    public boolean contieneBienConId(Long id) {
-        return BIEN_MAP.containsKey(id);
+    public boolean contieneProductoConId(Long id) {
+        return PRODUCTO_MAP.containsKey(id);
     }
 
     private void indexText(Map<String, List<Long>> index, String text, long id) {
@@ -315,7 +315,7 @@ public class BienEnMemoriaBean {
         while (lo < hi) {
             int mid = (lo + hi) >>> 1;
             Long midId = list.get(mid);
-            String midName = NORMALIZED_NOMBRE_CACHE.getOrDefault(midId, normalize(BIEN_MAP.get(midId) == null ? null : BIEN_MAP.get(midId).getNombre()));
+            String midName = NORMALIZED_NOMBRE_CACHE.getOrDefault(midId, normalize(PRODUCTO_MAP.get(midId) == null ? null : PRODUCTO_MAP.get(midId).getNombre()));
             int cmp = midName.compareTo(idName);
             if (cmp < 0) {
                 lo = mid + 1;
@@ -380,49 +380,49 @@ public class BienEnMemoriaBean {
     }
 
     /**
-     * Add or update a single Bien into the in-memory maps and indexes.
+     * Add or update a single Producto into the in-memory maps and indexes.
      */
     @Lock(LockType.WRITE)
-    public void agregarOActualizarBien(Bien bien) {
-        if (bien == null || bien.getIdBien() == null) return;
-        Long id = bien.getIdBien();
-        Bien prev = BIEN_MAP.put(id, bien);
+    public void agregarOActualizarProducto(Producto producto) {
+        if (producto == null || producto.getIdProducto() == null) return;
+        Long id = producto.getIdProducto();
+        Producto prev = PRODUCTO_MAP.put(id, producto);
         // update normalized cache
-        NORMALIZED_NOMBRE_CACHE.put(id, normalize(bien.getNombre()));
+        NORMALIZED_NOMBRE_CACHE.put(id, normalize(producto.getNombre()));
         if (prev != null) {
             // remove previous tokens
             removeIdFromIndexForText(NOMBRE_INDEX, prev.getNombre(), id);
             removeIdFromIndexForText(MARCA_INDEX, prev.getMarca(), id);
             removeIdFromIndexForText(DESCRIPCION_INDEX, prev.getDescripcion(), id);
         }
-        indexText(NOMBRE_INDEX, bien.getNombre(), id);
-        indexText(MARCA_INDEX, bien.getMarca(), id);
-        indexText(DESCRIPCION_INDEX, bien.getDescripcion(), id);
+        indexText(NOMBRE_INDEX, producto.getNombre(), id);
+        indexText(MARCA_INDEX, producto.getMarca(), id);
+        indexText(DESCRIPCION_INDEX, producto.getDescripcion(), id);
     }
 
     /**
      * CDI-friendly index event used to update indexes from other services without circular injection.
      * Usage from a service layer:
-     *   @Inject Event<BienEnMemoriaBean.IndexEvent> indexEvent;
-     *   indexEvent.fire(IndexEvent.addOrUpdate(bien));
+     *   @Inject Event<ProductoEnMemoriaBean.IndexEvent> indexEvent;
+     *   indexEvent.fire(IndexEvent.addOrUpdate(producto));
      * The observer below will react to the event and update the in-memory index within the bean's EJB context.
      */
     public static class IndexEvent {
         public enum Type { ADD_OR_UPDATE, DELETE, RELOAD }
         private final Type type;
-        private final Bien bien;
+        private final Producto producto;
         private final Long id;
 
-        private IndexEvent(Type type, Bien bien, Long id) {
-            this.type = type; this.bien = bien; this.id = id;
+        private IndexEvent(Type type, Producto producto, Long id) {
+            this.type = type; this.producto = producto; this.id = id;
         }
 
-        public static IndexEvent addOrUpdate(Bien b) { return new IndexEvent(Type.ADD_OR_UPDATE, b, b == null ? null : b.getIdBien()); }
+        public static IndexEvent addOrUpdate(Producto b) { return new IndexEvent(Type.ADD_OR_UPDATE, b, b == null ? null : b.getIdProducto()); }
         public static IndexEvent delete(Long id) { return new IndexEvent(Type.DELETE, null, id); }
         public static IndexEvent reload() { return new IndexEvent(Type.RELOAD, null, null); }
 
         public Type getType() { return type; }
-        public Bien getBien() { return bien; }
+        public Producto getProducto() { return producto; }
         public Long getId() { return id; }
     }
 
@@ -431,10 +431,10 @@ public class BienEnMemoriaBean {
         if (ev == null || ev.getType() == null) return;
         switch (ev.getType()) {
             case ADD_OR_UPDATE:
-                if (ev.getBien() != null) agregarOActualizarBien(ev.getBien());
+                if (ev.getProducto() != null) agregarOActualizarProducto(ev.getProducto());
                 break;
             case DELETE:
-                if (ev.getId() != null) eliminarBien(ev.getId());
+                if (ev.getId() != null) eliminarProducto(ev.getId());
                 break;
             case RELOAD:
                 recargar();
@@ -443,12 +443,12 @@ public class BienEnMemoriaBean {
     }
 
     /**
-     * Remove a Bien from in-memory maps and indexes by id.
+     * Remove a Producto from in-memory maps and indexes by id.
      */
     @Lock(LockType.WRITE)
-    public void eliminarBien(Long id) {
+    public void eliminarProducto(Long id) {
         if (id == null) return;
-        Bien prev = BIEN_MAP.remove(id);
+        Producto prev = PRODUCTO_MAP.remove(id);
         // remove from normalized cache
         NORMALIZED_NOMBRE_CACHE.remove(id);
         if (prev != null) {
@@ -463,28 +463,28 @@ public class BienEnMemoriaBean {
         }
     }
 
-    private List<Bien> sortByNombre(Collection<Long> ids) {
-        List<Bien> list = new ArrayList<>();
+    private List<Producto> sortByNombre(Collection<Long> ids) {
+        List<Producto> list = new ArrayList<>();
         for (Long id : ids) {
-            Bien b = BIEN_MAP.get(id);
+            Producto b = PRODUCTO_MAP.get(id);
             if (b != null) list.add(b);
         }
         // use cached normalized names when available to avoid repeated normalization allocations
         list.sort((a, b) -> {
-            String na = NORMALIZED_NOMBRE_CACHE.getOrDefault(a.getIdBien(), normalize(a.getNombre()));
-            String nb = NORMALIZED_NOMBRE_CACHE.getOrDefault(b.getIdBien(), normalize(b.getNombre()));
+            String na = NORMALIZED_NOMBRE_CACHE.getOrDefault(a.getIdProducto(), normalize(a.getNombre()));
+            String nb = NORMALIZED_NOMBRE_CACHE.getOrDefault(b.getIdProducto(), normalize(b.getNombre()));
             int cmp = na.compareTo(nb);
             if (cmp != 0) return cmp;
-            return a.getIdBien().compareTo(b.getIdBien());
+            return a.getIdProducto().compareTo(b.getIdProducto());
         });
         return list;
     }
 
-    private Comparator<Bien> comparatorFor(OrderField field, OrderDirection dir) {
-        Comparator<Bien> cmp;
+    private Comparator<Producto> comparatorFor(OrderField field, OrderDirection dir) {
+        Comparator<Producto> cmp;
         switch (field) {
             case MARCA:
-                cmp = Comparator.comparing((Bien b) -> b.getMarca() == null ? "" : b.getMarca(), String.CASE_INSENSITIVE_ORDER);
+                cmp = Comparator.comparing((Producto b) -> b.getMarca() == null ? "" : b.getMarca(), String.CASE_INSENSITIVE_ORDER);
                 break;
             case PRECIO:
                 cmp = (a, b) -> {
@@ -495,7 +495,7 @@ public class BienEnMemoriaBean {
                     if (pb == null) return -1;
                     int r = pa.compareTo(pb);
                     if (r != 0) return r;
-                    return a.getIdBien().compareTo(b.getIdBien());
+                    return a.getIdProducto().compareTo(b.getIdProducto());
                 };
                 break;
             case FECHA_HORA_CREACION:
@@ -507,13 +507,13 @@ public class BienEnMemoriaBean {
                     if (tb == null) return -1;
                     int r = ta.compareTo(tb);
                     if (r != 0) return r;
-                    return a.getIdBien().compareTo(b.getIdBien());
+                    return a.getIdProducto().compareTo(b.getIdProducto());
                 };
                 break;
             case NOMBRE:
             default:
-                cmp = Comparator.comparing((Bien x) -> x.getNombre() == null ? "" : x.getNombre(), String.CASE_INSENSITIVE_ORDER)
-                        .thenComparing(Bien::getIdBien);
+                cmp = Comparator.comparing((Producto x) -> x.getNombre() == null ? "" : x.getNombre(), String.CASE_INSENSITIVE_ORDER)
+                        .thenComparing(Producto::getIdProducto);
                 break;
         }
         if (dir == OrderDirection.DESC) {
@@ -522,13 +522,13 @@ public class BienEnMemoriaBean {
         return cmp;
     }
 
-    private List<Bien> sortByField(Collection<Long> ids, OrderField field, OrderDirection dir) {
-        List<Bien> list = new ArrayList<>();
+    private List<Producto> sortByField(Collection<Long> ids, OrderField field, OrderDirection dir) {
+        List<Producto> list = new ArrayList<>();
         for (Long id : ids) {
-            Bien b = BIEN_MAP.get(id);
+            Producto b = PRODUCTO_MAP.get(id);
             if (b != null) list.add(b);
         }
-        Comparator<Bien> cmp = comparatorFor(field, dir);
+        Comparator<Producto> cmp = comparatorFor(field, dir);
         Collections.sort(list, cmp);
         return list;
     }
@@ -538,8 +538,8 @@ public class BienEnMemoriaBean {
      * first matches on nombre (sorted by nombre), then marca (sorted), then descripcion (sorted).
      */
     @Lock(LockType.READ)
-    public LinkedHashMap<Long, Bien> buscarPorNombreMarcaDescripcionIndexed(String termino, int maxResults) {
-        LinkedHashMap<Long, Bien> resultados = new LinkedHashMap<>();
+    public LinkedHashMap<Long, Producto> buscarPorNombreMarcaDescripcionIndexed(String termino, int maxResults) {
+        LinkedHashMap<Long, Producto> resultados = new LinkedHashMap<>();
         if (termino == null) return resultados;
         String q = termino.trim().toLowerCase();
         if (q.isEmpty()) return resultados;
@@ -568,12 +568,12 @@ public class BienEnMemoriaBean {
         // if no ids from index, fallback to single-pass contains search for correctness
         if (nombreIds.isEmpty() && marcaIds.isEmpty() && descIds.isEmpty()) {
             // fallback to previous behavior but preserve deterministic ordering: prefer nombre-sorted order
-            Map<Long, Bien> fallback = buscarPorNombreMarcaDescripcion(q, maxResults);
+            Map<Long, Producto> fallback = buscarPorNombreMarcaDescripcion(q, maxResults);
             java.util.Set<Long> ids = fallback.keySet();
-            List<Bien> nombreList = sortByNombre(ids);
-            LinkedHashMap<Long, Bien> out = new LinkedHashMap<>();
-            for (Bien b : nombreList) {
-                out.put(b.getIdBien(), b);
+            List<Producto> nombreList = sortByNombre(ids);
+            LinkedHashMap<Long, Producto> out = new LinkedHashMap<>();
+            for (Producto b : nombreList) {
+                out.put(b.getIdProducto(), b);
                 if (maxResults > 0 && out.size() >= maxResults) break;
             }
             return out;
@@ -586,13 +586,13 @@ public class BienEnMemoriaBean {
         unionCheck.addAll(nombreIds);
         unionCheck.addAll(marcaIds);
         unionCheck.addAll(descIds);
-        if (!BIEN_MAP.isEmpty() && unionCheck.size() > (BIEN_MAP.size() / 2)) {
-            Map<Long, Bien> fallback = buscarPorNombreMarcaDescripcion(q, maxResults);
+        if (!PRODUCTO_MAP.isEmpty() && unionCheck.size() > (PRODUCTO_MAP.size() / 2)) {
+            Map<Long, Producto> fallback = buscarPorNombreMarcaDescripcion(q, maxResults);
             java.util.Set<Long> ids = fallback.keySet();
-            List<Bien> nombreList = sortByNombre(ids);
-            LinkedHashMap<Long, Bien> out = new LinkedHashMap<>();
-            for (Bien b : nombreList) {
-                out.put(b.getIdBien(), b);
+            List<Producto> nombreList = sortByNombre(ids);
+            LinkedHashMap<Long, Producto> out = new LinkedHashMap<>();
+            for (Producto b : nombreList) {
+                out.put(b.getIdProducto(), b);
                 if (maxResults > 0 && out.size() >= maxResults) break;
             }
             return out;
@@ -606,7 +606,7 @@ public class BienEnMemoriaBean {
         }
         List<Long> nombreOrdered = mergePostingLists(nombrePostings, maxResults);
         for (Long id : nombreOrdered) {
-            Bien b = BIEN_MAP.get(id);
+            Producto b = PRODUCTO_MAP.get(id);
             if (b != null) {
                 resultados.put(id, b);
                 if (maxResults > 0 && resultados.size() >= maxResults) return resultados;
@@ -619,9 +619,9 @@ public class BienEnMemoriaBean {
             List<Long> p = MARCA_INDEX.get(t);
             if (p != null && !p.isEmpty() && !shouldSkipToken(p.size())) marcaUnion.addAll(p);
         }
-        List<Bien> marcaList = sortByNombre(marcaUnion.stream().filter(id -> !resultados.containsKey(id)).collect(Collectors.toList()));
-        for (Bien b : marcaList) {
-            resultados.put(b.getIdBien(), b);
+        List<Producto> marcaList = sortByNombre(marcaUnion.stream().filter(id -> !resultados.containsKey(id)).collect(Collectors.toList()));
+        for (Producto b : marcaList) {
+            resultados.put(b.getIdProducto(), b);
             if (maxResults > 0 && resultados.size() >= maxResults) return resultados;
         }
 
@@ -631,9 +631,9 @@ public class BienEnMemoriaBean {
             List<Long> p = DESCRIPCION_INDEX.get(t);
             if (p != null && !p.isEmpty() && !shouldSkipToken(p.size())) descUnion.addAll(p);
         }
-        List<Bien> descList = sortByNombre(descUnion.stream().filter(id -> !resultados.containsKey(id)).collect(Collectors.toList()));
-        for (Bien b : descList) {
-            resultados.put(b.getIdBien(), b);
+        List<Producto> descList = sortByNombre(descUnion.stream().filter(id -> !resultados.containsKey(id)).collect(Collectors.toList()));
+        for (Producto b : descList) {
+            resultados.put(b.getIdProducto(), b);
             if (maxResults > 0 && resultados.size() >= maxResults) return resultados;
         }
 
@@ -642,7 +642,7 @@ public class BienEnMemoriaBean {
 
     private boolean shouldSkipToken(int postingSize) {
         if (postingSize <= 0) return true;
-        int total = BIEN_MAP.size();
+        int total = PRODUCTO_MAP.size();
         if (total == 0) return true;
         double frac = ((double) postingSize) / (double) total;
         return frac >= tokenDfThreshold; // skip token when too common
@@ -657,8 +657,8 @@ public class BienEnMemoriaBean {
         class Item { long id; int listIdx; int pos; }
 
         java.util.PriorityQueue<Item> pq = new java.util.PriorityQueue<>((a,b) -> {
-            String na = NORMALIZED_NOMBRE_CACHE.getOrDefault(a.id, normalize(BIEN_MAP.get(a.id) == null ? null : BIEN_MAP.get(a.id).getNombre()));
-            String nb = NORMALIZED_NOMBRE_CACHE.getOrDefault(b.id, normalize(BIEN_MAP.get(b.id) == null ? null : BIEN_MAP.get(b.id).getNombre()));
+            String na = NORMALIZED_NOMBRE_CACHE.getOrDefault(a.id, normalize(PRODUCTO_MAP.get(a.id) == null ? null : PRODUCTO_MAP.get(a.id).getNombre()));
+            String nb = NORMALIZED_NOMBRE_CACHE.getOrDefault(b.id, normalize(PRODUCTO_MAP.get(b.id) == null ? null : PRODUCTO_MAP.get(b.id).getNombre()));
             int cmp = na.compareTo(nb);
             if (cmp != 0) return cmp;
             return Long.compare(a.id, b.id);
@@ -692,13 +692,13 @@ public class BienEnMemoriaBean {
     }
 
     @Lock(LockType.READ)
-    public LinkedHashMap<Long, Bien> buscarPorNombreMarcaDescripcionIndexed(String termino) {
+    public LinkedHashMap<Long, Producto> buscarPorNombreMarcaDescripcionIndexed(String termino) {
         return buscarPorNombreMarcaDescripcionIndexed(termino, 0);
     }
 
     @Lock(LockType.READ)
-    public LinkedHashMap<Long, Bien> buscarPorNombreMarcaDescripcionIndexed(String termino, OrderField orderField, OrderDirection orderDirection, int maxResults) {
-        LinkedHashMap<Long, Bien> resultados = new LinkedHashMap<>();
+    public LinkedHashMap<Long, Producto> buscarPorNombreMarcaDescripcionIndexed(String termino, OrderField orderField, OrderDirection orderDirection, int maxResults) {
+        LinkedHashMap<Long, Producto> resultados = new LinkedHashMap<>();
         if (termino == null) return resultados;
         String q = termino.trim().toLowerCase();
         if (q.isEmpty()) return resultados;
@@ -734,14 +734,14 @@ public class BienEnMemoriaBean {
         union.addAll(descIds);
 
         // heuristic: if index returns most of the dataset, prefer single-pass scan which is often faster
-        if (!BIEN_MAP.isEmpty() && union.size() > (BIEN_MAP.size() / 2)) {
+        if (!PRODUCTO_MAP.isEmpty() && union.size() > (PRODUCTO_MAP.size() / 2)) {
             return buscarPorNombreMarcaDescripcion(termino, orderField, orderDirection, maxResults);
         }
 
-        List<Bien> sorted = sortByField(union, orderField == null ? OrderField.NOMBRE : orderField, orderDirection == null ? OrderDirection.ASC : orderDirection);
+        List<Producto> sorted = sortByField(union, orderField == null ? OrderField.NOMBRE : orderField, orderDirection == null ? OrderDirection.ASC : orderDirection);
         int count = 0;
-        for (Bien b : sorted) {
-            resultados.put(b.getIdBien(), b);
+        for (Producto b : sorted) {
+            resultados.put(b.getIdProducto(), b);
             count++;
             if (maxResults > 0 && count >= maxResults) break;
         }
@@ -749,12 +749,12 @@ public class BienEnMemoriaBean {
     }
 
     @Lock(LockType.READ)
-    public LinkedHashMap<Long, Bien> buscarPorNombreMarcaDescripcionIndexed(String termino, OrderField orderField, OrderDirection orderDirection) {
+    public LinkedHashMap<Long, Producto> buscarPorNombreMarcaDescripcionIndexed(String termino, OrderField orderField, OrderDirection orderDirection) {
         return buscarPorNombreMarcaDescripcionIndexed(termino, orderField, orderDirection, 0);
     }
 
     /**
-     * Search in-memory bienes by nombre, then marca, then descripcion (in that priority order).
+     * Search in-memory productos by nombre, then marca, then descripcion (in that priority order).
      * Matching is case-insensitive and uses String.contains semantics. The returned map is
      * keyed by id to guarantee uniqueness and preserve fast lookups.
      *
@@ -762,8 +762,8 @@ public class BienEnMemoriaBean {
      * (no intermediate collections are created). If maxResults &gt; 0 the result will be capped.
      */
     @Lock(LockType.READ)
-    public Map<Long, Bien> buscarPorNombreMarcaDescripcion(String termino, int maxResults) {
-        Map<Long, Bien> resultados = new ConcurrentHashMap<>();
+    public Map<Long, Producto> buscarPorNombreMarcaDescripcion(String termino, int maxResults) {
+        Map<Long, Producto> resultados = new ConcurrentHashMap<>();
         if (termino == null) {
             return resultados;
         }
@@ -773,20 +773,20 @@ public class BienEnMemoriaBean {
         }
 
         int found = 0;
-        for (Bien bien : BIEN_MAP.values()) {
-            if (bien == null) {
+        for (Producto producto : PRODUCTO_MAP.values()) {
+            if (producto == null) {
                 continue;
             }
             boolean matched = false;
-            String nombre = bien.getNombre();
+            String nombre = producto.getNombre();
             if (nombre != null && !nombre.isEmpty() && nombre.toLowerCase().contains(q)) {
                 matched = true;
             } else {
-                String marca = bien.getMarca();
+                String marca = producto.getMarca();
                 if (marca != null && !marca.isEmpty() && marca.toLowerCase().contains(q)) {
                     matched = true;
                 } else {
-                    String descripcion = bien.getDescripcion();
+                    String descripcion = producto.getDescripcion();
                     if (descripcion != null && !descripcion.isEmpty() && descripcion.toLowerCase().contains(q)) {
                         matched = true;
                     }
@@ -794,7 +794,7 @@ public class BienEnMemoriaBean {
             }
 
             if (matched) {
-                resultados.put(bien.getIdBien(), bien);
+                resultados.put(producto.getIdProducto(), producto);
                 found++;
                 if (maxResults > 0 && found >= maxResults) {
                     break;
@@ -805,7 +805,7 @@ public class BienEnMemoriaBean {
     }
 
     @Lock(LockType.READ)
-    public Map<Long, Bien> buscarPorNombreMarcaDescripcion(String termino) {
+    public Map<Long, Producto> buscarPorNombreMarcaDescripcion(String termino) {
         return buscarPorNombreMarcaDescripcion(termino, 0);
     }
 
@@ -814,37 +814,37 @@ public class BienEnMemoriaBean {
      * results according to provided orderField and orderDirection.
      */
     @Lock(LockType.READ)
-    public LinkedHashMap<Long, Bien> buscarPorNombreMarcaDescripcion(String termino, OrderField orderField, OrderDirection orderDirection, int maxResults) {
-        LinkedHashMap<Long, Bien> resultados = new LinkedHashMap<>();
+    public LinkedHashMap<Long, Producto> buscarPorNombreMarcaDescripcion(String termino, OrderField orderField, OrderDirection orderDirection, int maxResults) {
+        LinkedHashMap<Long, Producto> resultados = new LinkedHashMap<>();
         if (termino == null) return resultados;
         String q = termino.trim().toLowerCase();
         if (q.isEmpty()) return resultados;
 
         java.util.Set<Long> ids = new java.util.HashSet<>();
-        for (Bien bien : BIEN_MAP.values()) {
-            if (bien == null) continue;
+        for (Producto producto : PRODUCTO_MAP.values()) {
+            if (producto == null) continue;
             boolean matched = false;
-            String nombre = bien.getNombre();
+            String nombre = producto.getNombre();
             if (nombre != null && !nombre.isEmpty() && nombre.toLowerCase().contains(q)) {
                 matched = true;
             } else {
-                String marca = bien.getMarca();
+                String marca = producto.getMarca();
                 if (marca != null && !marca.isEmpty() && marca.toLowerCase().contains(q)) {
                     matched = true;
                 } else {
-                    String descripcion = bien.getDescripcion();
+                    String descripcion = producto.getDescripcion();
                     if (descripcion != null && !descripcion.isEmpty() && descripcion.toLowerCase().contains(q)) {
                         matched = true;
                     }
                 }
             }
-            if (matched) ids.add(bien.getIdBien());
+            if (matched) ids.add(producto.getIdProducto());
         }
 
-        List<Bien> sorted = sortByField(ids, orderField == null ? OrderField.NOMBRE : orderField, orderDirection == null ? OrderDirection.ASC : orderDirection);
+        List<Producto> sorted = sortByField(ids, orderField == null ? OrderField.NOMBRE : orderField, orderDirection == null ? OrderDirection.ASC : orderDirection);
         int count = 0;
-        for (Bien b : sorted) {
-            resultados.put(b.getIdBien(), b);
+        for (Producto b : sorted) {
+            resultados.put(b.getIdProducto(), b);
             count++;
             if (maxResults > 0 && count >= maxResults) break;
         }
@@ -852,7 +852,7 @@ public class BienEnMemoriaBean {
     }
 
     @Lock(LockType.READ)
-    public LinkedHashMap<Long, Bien> buscarPorNombreMarcaDescripcion(String termino, OrderField orderField, OrderDirection orderDirection) {
+    public LinkedHashMap<Long, Producto> buscarPorNombreMarcaDescripcion(String termino, OrderField orderField, OrderDirection orderDirection) {
         return buscarPorNombreMarcaDescripcion(termino, orderField, orderDirection, 0);
     }
 

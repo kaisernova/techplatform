@@ -28,9 +28,9 @@ import lombok.Setter;
 @Entity
 @AllArgsConstructor
 @NoArgsConstructor
-@Table(name = "BIEN", schema = "productos")
-public class Bien extends MappedSuperAuditableActivableClass {
-	private Long idBien;
+@Table(name = "PRODUCTO", schema = "productos")
+public class Producto extends MappedSuperAuditableActivableClass {
+	private Long idProducto;
 	private String codigoCategoria;
 	private String codigo;
 	private String nombre;
@@ -49,11 +49,11 @@ public class Bien extends MappedSuperAuditableActivableClass {
 	private String tags;
 
 	@Id
-	@Column(name = "ID_BIEN")
-	@GeneratedValue(generator = "ID_BIEN_SEQ", strategy = GenerationType.SEQUENCE)
-	@SequenceGenerator(schema = "public", name = "ID_BIEN_SEQ", sequenceName = "ID_BIEN_SEQ", allocationSize = 1)
-	public Long getIdBien() {
-		return idBien;
+	@Column(name = "ID_PRODUCTO")
+	@GeneratedValue(generator = "ID_PRODUCTO_SEQ", strategy = GenerationType.SEQUENCE)
+	@SequenceGenerator(schema = "public", name = "ID_PRODUCTO_SEQ", sequenceName = "ID_PRODUCTO_SEQ", allocationSize = 1)
+	public Long getIdProducto() {
+		return idProducto;
 	}
 
 	@Basic
