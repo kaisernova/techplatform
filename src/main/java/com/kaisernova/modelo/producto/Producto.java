@@ -3,11 +3,13 @@ package com.kaisernova.modelo.producto;
 import java.math.BigDecimal;
 import java.util.Set;
 
+import com.kaisernova.excepcion.JsonExcepcion;
 import com.kaisernova.modelo.base.MappedSuperAuditableActivableClass;
 import com.kaisernova.modelo.enums.NombreParametroConfiguracion;
 import com.kaisernova.modelo.enums.TipoDato;
 import com.kaisernova.modelo.enums.UnidadMedidaLongitud;
 import com.kaisernova.modelo.enums.UnidadMedidaPeso;
+import com.kaisernova.util.JsonUtil;
 
 import jakarta.persistence.Basic;
 import jakarta.persistence.Column;
@@ -20,6 +22,7 @@ import jakarta.persistence.Id;
 import jakarta.persistence.Lob;
 import jakarta.persistence.SequenceGenerator;
 import jakarta.persistence.Table;
+import jakarta.persistence.Transient;
 import lombok.AllArgsConstructor;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -47,6 +50,8 @@ public class Producto extends MappedSuperAuditableActivableClass {
 	private BigDecimal altura;
 	private UnidadMedidaLongitud unidadMedidaAltura;
 	private String tags;
+	
+	private String multimediaProductoJson;
 
 	@Id
 	@Column(name = "ID_PRODUCTO")
@@ -150,5 +155,20 @@ public class Producto extends MappedSuperAuditableActivableClass {
 	@Column(name = "tags", length = 1024)
 	public String getTags() {
 		return tags;
+	}
+	
+	@Lob
+	@Column(name = "multimedia_producto_json")
+	public String getMultimediaProductoJson() {
+		return multimediaProductoJson;
+	}
+	
+	@Transient
+	public MultimediaProducto getMultimediaProducto() {
+		try {
+			return JsonUtil.jsonToObject(multimediaProductoJson, MultimediaProducto.class);
+		} catch (Exception e) {
+			return null;
+		}
 	}
 }
