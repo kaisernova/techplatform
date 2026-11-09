@@ -1,6 +1,7 @@
 package com.kaisernova.modelo.producto;
 
 import java.math.BigDecimal;
+import java.util.Objects;
 import java.util.Set;
 
 import com.kaisernova.excepcion.JsonExcepcion;
@@ -52,6 +53,7 @@ public class Producto extends MappedSuperAuditableActivableClass {
 	private String tags;
 	
 	private String multimediaProductoJson;
+	private MultimediaProducto multimediaProducto;
 
 	@Id
 	@Column(name = "ID_PRODUCTO")
@@ -166,7 +168,11 @@ public class Producto extends MappedSuperAuditableActivableClass {
 	@Transient
 	public MultimediaProducto getMultimediaProducto() {
 		try {
-			return JsonUtil.jsonToObject(multimediaProductoJson, MultimediaProducto.class);
+			if(Objects.isNull(multimediaProducto)) {
+				multimediaProducto = JsonUtil.jsonToObject(multimediaProductoJson, MultimediaProducto.class);
+			}
+			return multimediaProducto;
+
 		} catch (Exception e) {
 			return null;
 		}
