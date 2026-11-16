@@ -4,13 +4,9 @@ import java.math.BigDecimal;
 import java.util.Objects;
 import java.util.Set;
 
-import com.kaisernova.excepcion.JsonExcepcion;
 import com.kaisernova.modelo.base.MappedSuperAuditableActivableClass;
-import com.kaisernova.modelo.enums.NombreParametroConfiguracion;
-import com.kaisernova.modelo.enums.TipoDato;
 import com.kaisernova.modelo.enums.UnidadMedidaLongitud;
 import com.kaisernova.modelo.enums.UnidadMedidaPeso;
-import com.kaisernova.util.JsonUtil;
 
 import jakarta.persistence.Basic;
 import jakarta.persistence.Column;
@@ -168,11 +164,10 @@ public class Producto extends MappedSuperAuditableActivableClass {
 	@Transient
 	public MultimediaProducto getMultimediaProducto() {
 		try {
-			if(Objects.isNull(multimediaProducto)) {
-				multimediaProducto = JsonUtil.jsonToObject(multimediaProductoJson, MultimediaProducto.class);
+			if (Objects.isNull(multimediaProducto)) {
+				multimediaProducto = MultimediaProducto.fromJson(multimediaProductoJson);
 			}
 			return multimediaProducto;
-
 		} catch (Exception e) {
 			return null;
 		}

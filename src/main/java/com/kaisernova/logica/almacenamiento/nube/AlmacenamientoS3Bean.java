@@ -61,6 +61,13 @@ public class AlmacenamientoS3Bean {
 	@Lock(LockType.WRITE)
 	public void recargar() {
 		try {
+			boolean habilitado = config.getValueAsBoolean(NombreParametroConfiguracion.HABILITAR_S3);
+			if (!habilitado) {
+				s3client = null;
+				s3Bucket = null;
+				logger.warning("[recargar] S3 deshabilitado por configuracion; se usara solo almacenamiento local");
+				return;
+			}
 			String accessKey = config.getValue(NombreParametroConfiguracion.S3_ACCESS_KEY);
 			String secretKey = config.getValue(NombreParametroConfiguracion.S3_SECRET_KEY);
 			String endpoint = config.getValue(NombreParametroConfiguracion.S3_ENDPOINT_URL);
@@ -177,5 +184,10 @@ public class AlmacenamientoS3Bean {
 	private int entero(NombreParametroConfiguracion parametro, int defecto) {
 		int valor = config.getValueAsInteger(parametro); // returns 0 when missing/invalid
 		return valor > 0 ? valor : defecto;
+	}
+
+	@Lock(LockType.READ)
+	public boolean isHabilitado() {
+		return config.getValueAsBoolean(NombreParametroConfiguracion.HABILITAR_S3);
 	}
 }

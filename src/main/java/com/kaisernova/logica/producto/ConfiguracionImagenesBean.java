@@ -24,7 +24,7 @@ public class ConfiguracionImagenesBean {
 	public static final String DEF_DIR_LOCAL = "/opt/app/imagenes/productos";
 	public static final String DEF_PLACEHOLDER = "/resources/img/sin-imagen.png";
 	public static final String DEF_PREFIJO_S3 = "productos/";
-	public static final String DEF_PATRON_NOMBRE = "^[A-Za-z0-9_-][A-Za-z0-9_.-]*\\.(jpg|jpeg|png|webp|gif)$";
+	public static final String DEF_PATRON_NOMBRE = "^[A-Za-z0-9_-][A-Za-z0-9_.-]*\\.(jpg|jpeg|png|webp|gif|mp4|webm|m4v|mov|mp3|wav|ogg|m4a|aac)$";
 	public static final int DEF_CACHE_S3_SEG = 86_400;
 	public static final int DEF_CACHE_LOCAL_SEG = 300;
  
@@ -96,5 +96,8 @@ public class ConfiguracionImagenesBean {
 			return defecto;
 		}
 	}
+
+	public boolean habilitarS3() {
+		return config.getValueAsBoolean(NombreParametroConfiguracion.HABILITAR_S3);
+	}
 }
- 

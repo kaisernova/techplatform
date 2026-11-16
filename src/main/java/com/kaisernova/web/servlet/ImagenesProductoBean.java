@@ -67,14 +67,21 @@ public class ImagenesProductoBean {
 	}
 
 	public String placeholder() {
-		return contexto() + cfg.placeholder();
+		String contextPath = contexto();
+		return contextPath == null ? cfg.placeholder() : contextPath + cfg.placeholder();
 	}
 
 	private String url(String nombreArchivo) {
-		return contexto() + ProductoImagenServlet.RUTA_URL + URLEncoder.encode(nombreArchivo, StandardCharsets.UTF_8);
+		String contextPath = contexto();
+		String base = contextPath == null ? "" : contextPath;
+		return base + ProductoImagenServlet.RUTA_URL + URLEncoder.encode(nombreArchivo, StandardCharsets.UTF_8);
 	}
 
 	private String contexto() {
-		return FacesContext.getCurrentInstance().getExternalContext().getRequestContextPath();
+		FacesContext facesContext = FacesContext.getCurrentInstance();
+		if (facesContext == null || facesContext.getExternalContext() == null) {
+			return null;
+		}
+		return facesContext.getExternalContext().getRequestContextPath();
 	}
 }

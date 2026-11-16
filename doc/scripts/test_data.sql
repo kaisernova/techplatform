@@ -116,4 +116,37 @@ BEGIN
     END IF;
 END $$;
 
+-- =========================
+-- MULTIMEDIA DEL PRODUCTO (JSON)
+-- =========================
+-- Convención utilizada por la app:
+--   - nombres de archivo: PROD-001_01.jpg, PROD-001_02.jpg, PROD-001_03.jpg
+--   - la servlet los sirve desde /imagenes/producto/{nombreArchivo}
+--   - el bean ordena los nombres alfabéticamente por la convención _01, _02, _03
+UPDATE productos.producto SET multimedia_producto_json = '{"IMG":["PROD-001_01.jpg","PROD-001_02.jpg","PROD-001_03.jpg"],"VID":[],"AUD":[]}' WHERE codigo = 'PROD-001';
+UPDATE productos.producto SET multimedia_producto_json = '{"IMG":["PROD-002_01.jpg","PROD-002_02.jpg","PROD-002_03.jpg"],"VID":[],"AUD":[]}' WHERE codigo = 'PROD-002';
+UPDATE productos.producto SET multimedia_producto_json = '{"IMG":["PROD-003_01.jpg","PROD-003_02.jpg","PROD-003_03.jpg"],"VID":[],"AUD":[]}' WHERE codigo = 'PROD-003';
+UPDATE productos.producto SET multimedia_producto_json = '{"IMG":["PROD-004_01.jpg","PROD-004_02.jpg","PROD-004_03.jpg"],"VID":[],"AUD":[]}' WHERE codigo = 'PROD-004';
+UPDATE productos.producto SET multimedia_producto_json = '{"IMG":["PROD-005_01.jpg","PROD-005_02.jpg","PROD-005_03.jpg"],"VID":[],"AUD":[]}' WHERE codigo = 'PROD-005';
+UPDATE productos.producto SET multimedia_producto_json = '{"IMG":["PROD-006_01.jpg","PROD-006_02.jpg","PROD-006_03.jpg"],"VID":[],"AUD":[]}' WHERE codigo = 'PROD-006';
+UPDATE productos.producto SET multimedia_producto_json = '{"IMG":["PROD-007_01.jpg","PROD-007_02.jpg","PROD-007_03.jpg"],"VID":[],"AUD":[]}' WHERE codigo = 'PROD-007';
+UPDATE productos.producto SET multimedia_producto_json = '{"IMG":["PROD-008_01.jpg","PROD-008_02.jpg","PROD-008_03.jpg"],"VID":[],"AUD":[]}' WHERE codigo = 'PROD-008';
+UPDATE productos.producto SET multimedia_producto_json = '{"IMG":["PROD-009_01.jpg","PROD-009_02.jpg","PROD-009_03.jpg"],"VID":[],"AUD":[]}' WHERE codigo = 'PROD-009';
+UPDATE productos.producto SET multimedia_producto_json = '{"IMG":["PROD-010_01.jpg","PROD-010_02.jpg","PROD-010_03.jpg"],"VID":[],"AUD":[]}' WHERE codigo = 'PROD-010';
+UPDATE productos.producto SET multimedia_producto_json = '{"IMG":["PROD-011_01.jpg","PROD-011_02.jpg","PROD-011_03.jpg"],"VID":[],"AUD":[]}' WHERE codigo = 'PROD-011';
+UPDATE productos.producto SET multimedia_producto_json = '{"IMG":["PROD-012_01.jpg","PROD-012_02.jpg","PROD-012_03.jpg"],"VID":[],"AUD":[]}' WHERE codigo = 'PROD-012';
+UPDATE productos.producto SET multimedia_producto_json = '{"IMG":["PROD-013_01.jpg","PROD-013_02.jpg","PROD-013_03.jpg"],"VID":[],"AUD":[]}' WHERE codigo = 'PROD-013';
+UPDATE productos.producto SET multimedia_producto_json = '{"IMG":["PROD-014_01.jpg","PROD-014_02.jpg","PROD-014_03.jpg"],"VID":[],"AUD":[]}' WHERE codigo = 'PROD-014';
+UPDATE productos.producto SET multimedia_producto_json = '{"IMG":["PROD-015_01.jpg","PROD-015_02.jpg","PROD-015_03.jpg"],"VID":[],"AUD":[]}' WHERE codigo = 'PROD-015';
+UPDATE productos.producto SET multimedia_producto_json = '{"IMG":["PROD-016_01.jpg","PROD-016_02.jpg","PROD-016_03.jpg"],"VID":[],"AUD":[]}' WHERE codigo = 'PROD-016';
+UPDATE productos.producto SET multimedia_producto_json = '{"IMG":["PROD-017_01.jpg","PROD-017_02.jpg","PROD-017_03.jpg"],"VID":[],"AUD":[]}' WHERE codigo = 'PROD-017';
+UPDATE productos.producto SET multimedia_producto_json = '{"IMG":["PROD-018_01.jpg","PROD-018_02.jpg","PROD-018_03.jpg"],"VID":[],"AUD":[]}' WHERE codigo = 'PROD-018';
+UPDATE productos.producto SET multimedia_producto_json = '{"IMG":["PROD-019_01.jpg","PROD-019_02.jpg","PROD-019_03.jpg"],"VID":[],"AUD":[]}' WHERE codigo = 'PROD-019';
+UPDATE productos.producto SET multimedia_producto_json = '{"IMG":["PROD-020_01.jpg","PROD-020_02.jpg","PROD-020_03.jpg"],"VID":[],"AUD":[]}' WHERE codigo = 'PROD-020';
+UPDATE productos.producto SET multimedia_producto_json = '{"IMG":["PROD-021_01.jpg","PROD-021_02.jpg","PROD-021_03.jpg"],"VID":[],"AUD":[]}' WHERE codigo = 'PROD-021';
+UPDATE productos.producto SET multimedia_producto_json = '{"IMG":["PROD-022_01.jpg","PROD-022_02.jpg","PROD-022_03.jpg"],"VID":[],"AUD":[]}' WHERE codigo = 'PROD-022';
+UPDATE productos.producto SET multimedia_producto_json = '{"IMG":["PROD-023_01.jpg","PROD-023_02.jpg","PROD-023_03.jpg"],"VID":[],"AUD":[]}' WHERE codigo = 'PROD-023';
+UPDATE productos.producto SET multimedia_producto_json = '{"IMG":["PROD-024_01.jpg","PROD-024_02.jpg","PROD-024_03.jpg"],"VID":[],"AUD":[]}' WHERE codigo = 'PROD-024';
+UPDATE productos.producto SET multimedia_producto_json = '{"IMG":["PROD-025_01.jpg","PROD-025_02.jpg","PROD-025_03.jpg"],"VID":[],"AUD":[]}' WHERE codigo = 'PROD-025';
+
 COMMIT;

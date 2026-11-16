@@ -1,5 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" 
+"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:jsf="jakarta.faces"
+	xmlns:ui="jakarta.faces.facelets" xmlns:f="jakarta.faces.core"
+	xmlns:h="jakarta.faces.html" xmlns:p="http://primefaces.org/ui"
+	xmlns:pass="http://xmlns.jcp.org/jsf/passthrough">
 <ui:composition template="/WEB-INF/template/commonLayout.xhtml"
     xmlns="http://www.w3.org/1999/xhtml"
     xmlns:h="jakarta.faces.html"
@@ -80,7 +85,9 @@
                                         <div style="font-size:1.4rem; font-weight:700; color:#1976d2; margin-bottom:10px;">
                                             #{productosControlador.getPrecioFormateado(producto)}
                                         </div>
-                                        <p:button value="Ver detalle" outcome="/productos.xhtml" styleClass="ui-button-outlined" />
+                                        <p:button value="Ver detalle" outcome="/producto.xhtml" styleClass="ui-button-outlined">
+											<f:param name="id" value="#{producto.idProducto}" />
+										</p:button>
                                     </div>
                                 </div>
                             </p:panel>
@@ -97,3 +104,4 @@
         </h:form>
     </ui:define>
 </ui:composition>
+</html>

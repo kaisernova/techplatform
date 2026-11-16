@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" 
+"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:jsf="jakarta.faces"
+	xmlns:ui="jakarta.faces.facelets" xmlns:f="jakarta.faces.core"
+	xmlns:h="jakarta.faces.html" xmlns:p="http://primefaces.org/ui"
+	xmlns:pass="http://xmlns.jcp.org/jsf/passthrough">
+<ui:composition template="/WEB-INF/template/commonLayout.xhtml"
+	xmlns="http://www.w3.org/1999/xhtml" xmlns:h="jakarta.faces.html"
+	xmlns:f="jakarta.faces.core" xmlns:ui="jakarta.faces.facelets"
+	xmlns:p="http://primefaces.org/ui">
+
+	<ui:define name="main">
+		<f:metadata>
+			<f:viewParam name="id" value="#{productoControlador.idProducto}" />
+		</f:metadata>
+
+		<h:panelGroup rendered="#{not empty productoControlador.producto}">
+			<p:panel header="#{productoControlador.producto.nombre}" styleClass="card-box">
+				<div class="ui-g">
+					<div class="ui-g-12 ui-md-5">
+						<p:galleria value="#{imagenesBean.urls(productoControlador.producto)}" var="img" panelHeight="420" showFilmstrip="true" autoPlay="false">
+							<p:graphicImage value="#{img}" style="width:100%; height:100%; object-fit:cover;" />
+						</p:galleria>
+						<h:panelGroup rendered="#{empty imagenesBean.urls(productoControlador.producto)}">
+							<p:graphicImage value="#{imagenesBean.placeholder()}" style="width:100%; max-height:420px; object-fit:cover;"/>
+						</h:panelGroup>
+					</div>
+					<div class="ui-g-12 ui-md-7">
+						<h2>#{productoControlador.producto.nombre}</h2>
+						<div><strong>Código:</strong> #{productoControlador.producto.codigo}</div>
+						<div><strong>Marca:</strong> #{productoControlador.producto.marca}</div>
+						<div><strong>Categoría:</strong> #{productoControlador.nombreCategoria}</div>
+						<div><strong>Precio:</strong> #{productoControlador.precioFormateado}</div>
+						<div style="margin-top:12px;"><strong>Descripción:</strong> #{productoControlador.producto.descripcion}</div>
+						<h:panelGroup rendered="#{not empty productoControlador.producto.tags}">
+							<div style="margin-top:12px;"><strong>Tags:</strong> #{productoControlador.producto.tags}</div>
+						</h:panelGroup>
+					</div>
+				</div>
+			</p:panel>
+		</h:panelGroup>
+
+		<h:panelGroup rendered="#{empty productoControlador.producto}">
+			<p:panel header="Producto no encontrado" styleClass="card-box">
+				<p>El producto solicitado no existe o ya no está disponible.</p>
+			</p:panel>
+		</h:panelGroup>
+	</ui:define>
+</ui:composition>
+</html>

@@ -59,7 +59,9 @@ public enum NombreParametroConfiguracion {
 	S3_TIMEOUT_PETICION_MS,
 	/** NEW. After an S3 failure, skip S3 for this many ms (circuit breaker). Default: 30000 */
 	S3_PAUSA_CAIDO_MS,
- 
+	/** NEW. Enable or disable access to S3 object storage. Default: NO */
+	HABILITAR_S3,
+
 	// ---- Product images ----
 	/** NEW. Local fallback directory (outside the war). Default: /opt/app/imagenes/productos */
 	IMAGENES_DIR_LOCAL,

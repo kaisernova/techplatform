@@ -1,6 +1,7 @@
 package com.kaisernova.web.servlet;
 
 import java.io.IOException;
+import java.net.URLConnection;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -21,7 +22,7 @@ import jakarta.servlet.http.HttpServletResponse;
  * Order: 1) S3 (OVH)  2) local directory  3) 404
  * Everything configurable comes from the DB through ConfiguracionImagenesBean.
  */
-@WebServlet(urlPatterns = ProductoImagenServlet.RUTA_URL + "*")
+@WebServlet(urlPatterns = { ProductoImagenServlet.RUTA_URL + "*", ProductoImagenServlet.RUTA_URL })
 public class ProductoImagenServlet extends HttpServlet {
 
 	private static final long serialVersionUID = 1L;
@@ -39,37 +40,41 @@ public class ProductoImagenServlet extends HttpServlet {
 
 	@Override
 	protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws IOException {
-		String pathInfo = req.getPathInfo();
-		String nombre = (pathInfo == null || pathInfo.length() < 2) ? "" : pathInfo.substring(1);
-
-		// Hard-coded safety checks: they apply even if the DB regex is too permissive.
-		if (nombre.isEmpty() || nombre.contains("..") || nombre.contains("/") || nombre.contains("\\")
-				|| !cfg.patronNombreValido().matcher(nombre).matches()) {
+		String nombre = extraerNombreArchivo(req);
+		if (nombre.isBlank() || nombre.contains("..") || nombre.contains("/") || nombre.contains("\\")) {
 			resp.sendError(HttpServletResponse.SC_BAD_REQUEST);
 			return;
 		}
 
-		String mime = getServletContext().getMimeType(nombre);
-		if (mime == null) {
-			mime = "application/octet-stream";
-		}
-
-		// 1) S3 first (never throws; empty = not found or S3 down)
-		Optional<byte[]> remota = s3.obtenerImagen(cfg.prefijoS3() + nombre);
-		if (remota.isPresent()) {
-			byte[] datos = remota.get();
-			resp.setHeader("Cache-Control", "public, max-age=" + cfg.cacheS3Segundos());
-			resp.setContentType(mime);
-			resp.setContentLength(datos.length);
-			resp.getOutputStream().write(datos);
+		if (!nombreValido(nombre)) {
+			resp.sendError(HttpServletResponse.SC_BAD_REQUEST);
 			return;
 		}
 
-		// 2) local fallback
+		String mime = URLConnection.guessContentTypeFromName(nombre);
+		if (mime == null || mime.isBlank()) {
+			mime = getServletContext().getMimeType(nombre);
+		}
+		if (mime == null || mime.isBlank()) {
+			mime = "application/octet-stream";
+		}
+
+		byte[] datos = null;
+		if (cfg.habilitarS3()) {
+			Optional<byte[]> remota = s3.obtenerImagen(cfg.prefijoS3() + nombre);
+			if (remota.isPresent()) {
+				datos = remota.get();
+				resp.setHeader("Cache-Control", "public, max-age=" + cfg.cacheS3Segundos());
+				resp.setContentType(mime);
+				resp.setContentLength(datos.length);
+				resp.getOutputStream().write(datos);
+				return;
+			}
+		}
+
 		Path dirLocal = Paths.get(cfg.dirLocal()).toAbsolutePath().normalize();
 		Path local = dirLocal.resolve(nombre).normalize();
 		if (local.startsWith(dirLocal) && Files.isRegularFile(local)) {
-			// shorter cache: when S3 comes back, clients should pick it up soon
 			resp.setHeader("Cache-Control", "public, max-age=" + cfg.cacheLocalSegundos());
 			resp.setContentType(mime);
 			resp.setContentLengthLong(Files.size(local));
@@ -77,8 +82,41 @@ public class ProductoImagenServlet extends HttpServlet {
 			return;
 		}
 
-		// 3) not found anywhere
 		resp.setHeader("Cache-Control", "no-cache");
 		resp.sendError(HttpServletResponse.SC_NOT_FOUND);
+	}
+
+	private String extraerNombreArchivo(HttpServletRequest req) {
+		String nombre = req.getPathInfo();
+		if (nombre == null || nombre.isBlank()) {
+			nombre = req.getServletPath();
+		}
+		if (nombre == null || nombre.isBlank()) {
+			String uri = req.getRequestURI();
+			if (uri != null && !uri.isBlank()) {
+				int ultimoSlash = uri.lastIndexOf('/');
+				if (ultimoSlash >= 0 && ultimoSlash < uri.length() - 1) {
+					nombre = uri.substring(ultimoSlash + 1);
+				}
+			}
+		}
+		if (nombre != null) {
+			nombre = nombre.trim();
+			if (nombre.startsWith("/")) {
+				nombre = nombre.substring(1);
+			}
+		}
+		return nombre == null ? "" : nombre;
+	}
+
+	private boolean nombreValido(String nombre) {
+		if (nombre == null || nombre.isBlank()) {
+			return false;
+		}
+		try {
+			return cfg.patronNombreValido().matcher(nombre).matches();
+		} catch (Exception e) {
+			return nombre.matches("^[A-Za-z0-9_-][A-Za-z0-9_.-]*\\.(jpg|jpeg|png|webp|gif|mp4|webm|m4v|mov|mp3|wav|ogg|m4a|aac)$");
+		}
 	}
 }
