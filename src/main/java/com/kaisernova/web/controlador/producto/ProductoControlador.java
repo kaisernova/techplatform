@@ -2,6 +2,8 @@ package com.kaisernova.web.controlador.producto;
 
 import java.io.Serializable;
 import java.util.Locale;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import com.kaisernova.logica.producto.CategoriaProductosBean;
 import com.kaisernova.logica.producto.ProductoEnMemoriaBean;
@@ -20,6 +22,7 @@ import jakarta.inject.Named;
 public class ProductoControlador extends BaseControlador implements Serializable {
 
 	private static final long serialVersionUID = 1L;
+	private static final Logger LOG = Logger.getLogger(ProductoControlador.class.getName());
 
 	@Inject
 	private ProductoEnMemoriaBean productoEnMemoriaBean;
@@ -32,26 +35,38 @@ public class ProductoControlador extends BaseControlador implements Serializable
 
 	@PostConstruct
 	public void inicializar() {
+		LOG.info("[ProductoControlador] inicializar() -> requestParam id=" + obtenerRequestId());
 		cargarProducto();
 	}
 
 	private void cargarProducto() {
 		if (idProducto == null) {
-			String valorId = FacesContext.getCurrentInstance() != null
-					? FacesContext.getCurrentInstance().getExternalContext().getRequestParameterMap().get("id")
-					: null;
+			String valorId = obtenerRequestId();
 			if (valorId != null && !valorId.isBlank()) {
 				try {
 					idProducto = Long.valueOf(valorId);
+					LOG.info("[ProductoControlador] idProducto seteado desde request: " + idProducto);
 				} catch (NumberFormatException e) {
 					idProducto = null;
+					LOG.log(Level.WARNING, "[ProductoControlador] id no numerico: " + valorId, e);
 				}
 			}
 		}
 		producto = idProducto == null ? null : productoEnMemoriaBean.obtenerPorId(idProducto);
 		if (producto == null) {
+			LOG.warning("[ProductoControlador] producto no encontrado para idProducto=" + idProducto);
 			fijarMensajeError("Producto no encontrado", "No se pudo cargar el producto solicitado.");
+		} else {
+			LOG.info("[ProductoControlador] producto cargado: id=" + producto.getIdProducto() + ", codigo=" + producto.getCodigo() + ", nombre=" + producto.getNombre());
 		}
+	}
+
+	private String obtenerRequestId() {
+		FacesContext facesContext = FacesContext.getCurrentInstance();
+		if (facesContext == null || facesContext.getExternalContext() == null) {
+			return null;
+		}
+		return facesContext.getExternalContext().getRequestParameterMap().get("id");
 	}
 
 	public String getPrecioFormateado() {
@@ -77,6 +92,7 @@ public class ProductoControlador extends BaseControlador implements Serializable
 	}
 
 	public void setIdProducto(Long idProducto) {
+		LOG.info("[ProductoControlador] setIdProducto(" + idProducto + ")");
 		this.idProducto = idProducto;
 		cargarProducto();
 	}

@@ -5,6 +5,8 @@ import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import com.kaisernova.logica.producto.ConfiguracionImagenesBean;
 import com.kaisernova.modelo.enums.TipoMultimedia;
@@ -29,59 +31,84 @@ import jakarta.inject.Named;
 @ApplicationScoped
 public class ImagenesProductoBean {
 
+	private static final Logger LOG = Logger.getLogger(ImagenesProductoBean.class.getName());
+
 	@Inject
 	private ConfiguracionImagenesBean cfg;
 
 	/** Image names of the product, sorted alphabetically (PROD-001_01 < PROD-001_02 ...). */
 	public List<String> nombres(Producto producto) {
 		if (producto == null) {
+			LOG.warning("[ImagenesProductoBean] producto null al calcular nombres");
 			return List.of();
 		}
-		MultimediaProducto multimedia = producto.getMultimediaProducto(); // parses the JSON
-		if (multimedia == null || multimedia.getReferenciasMultimedia() == null) {
+		try {
+			MultimediaProducto multimedia = producto.getMultimediaProducto();
+			if (multimedia == null || multimedia.getReferenciasMultimedia() == null) {
+				LOG.warning("[ImagenesProductoBean] sin multimedia para producto id=" + producto.getIdProducto() + ", codigo=" + producto.getCodigo());
+				return List.of();
+			}
+			Set<String> imagenes = multimedia.getReferenciasMultimedia().get(TipoMultimedia.IMG);
+			if (imagenes == null) {
+				LOG.warning("[ImagenesProductoBean] sin referencias IMG para producto id=" + producto.getIdProducto());
+				return List.of();
+			}
+			List<String> result = imagenes.stream()
+					.filter(Objects::nonNull)
+					.filter(n -> !n.isBlank())
+					.sorted()
+					.toList();
+			LOG.info("[ImagenesProductoBean] nombres detectados para producto " + producto.getIdProducto() + ": " + result);
+			return result;
+		} catch (Exception e) {
+			LOG.log(Level.SEVERE, "[ImagenesProductoBean] error leyendo multimedia para producto id=" + producto.getIdProducto(), e);
 			return List.of();
 		}
-		Set<String> imagenes = multimedia.getReferenciasMultimedia().get(TipoMultimedia.IMG);
-		if (imagenes == null) {
-			return List.of();
-		}
-		// The JSON is deserialized into a Set (no order guaranteed), so sort here.
-		return imagenes.stream()
-				.filter(Objects::nonNull)
-				.filter(n -> !n.isBlank())
-				.sorted()
-				.toList();
 	}
 
 	public List<String> urls(Producto producto) {
-		return nombres(producto).stream().map(this::url).toList();
+		List<String> nombres = nombres(producto);
+		List<String> urls = nombres.stream().map(this::url).toList();
+		LOG.info("[ImagenesProductoBean] urls generadas para producto id=" + (producto == null ? null : producto.getIdProducto()) + ": " + urls);
+		return urls;
 	}
 
 	public String principal(Producto producto) {
 		List<String> nombres = nombres(producto);
-		return nombres.isEmpty() ? placeholder() : url(nombres.get(0));
+		String valor = nombres.isEmpty() ? placeholder() : url(nombres.get(0));
+		LOG.info("[ImagenesProductoBean] principal para producto id=" + (producto == null ? null : producto.getIdProducto()) + ": " + valor);
+		return valor;
 	}
 
 	public boolean tieneImagenes(Producto producto) {
-		return !nombres(producto).isEmpty();
+		boolean tiene = !nombres(producto).isEmpty();
+		LOG.info("[ImagenesProductoBean] tieneImagenes(productoId=" + (producto == null ? null : producto.getIdProducto()) + ") = " + tiene);
+		return tiene;
 	}
 
 	public String placeholder() {
 		String contextPath = contexto();
-		return contextPath == null ? cfg.placeholder() : contextPath + cfg.placeholder();
+		String valor = contextPath == null ? cfg.placeholder() : contextPath + cfg.placeholder();
+		LOG.info("[ImagenesProductoBean] placeholder=" + valor);
+		return valor;
 	}
 
 	private String url(String nombreArchivo) {
 		String contextPath = contexto();
 		String base = contextPath == null ? "" : contextPath;
-		return base + ProductoImagenServlet.RUTA_URL + URLEncoder.encode(nombreArchivo, StandardCharsets.UTF_8);
+		String url = base + ProductoImagenServlet.RUTA_URL + URLEncoder.encode(nombreArchivo, StandardCharsets.UTF_8);
+		LOG.info("[ImagenesProductoBean] url archivo " + nombreArchivo + " -> " + url);
+		return url;
 	}
 
 	private String contexto() {
 		FacesContext facesContext = FacesContext.getCurrentInstance();
 		if (facesContext == null || facesContext.getExternalContext() == null) {
+			LOG.warning("[ImagenesProductoBean] FacesContext nulo al construir contexto de URL");
 			return null;
 		}
-		return facesContext.getExternalContext().getRequestContextPath();
+		String contextPath = facesContext.getExternalContext().getRequestContextPath();
+		LOG.info("[ImagenesProductoBean] contextPath=" + contextPath);
+		return contextPath;
 	}
 }

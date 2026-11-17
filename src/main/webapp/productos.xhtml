@@ -53,25 +53,33 @@
                                 styleClass="product-data-view">
 
                         <p:dataViewGridItem>
-                            <p:panel header="#{producto.nombre}" style="height:100%; min-height:220px;">
-                                <div style="display:flex; flex-direction:column; gap:8px;">
-                                    <div><strong>#{producto.marca}</strong></div>
-                                    <div><span class="ui-tag">#{productosControlador.obtenerNombreCategoria(producto.codigoCategoria)}</span></div>
-                                    <div><strong>Código:</strong> #{producto.codigo}</div>
-                                    <div><strong>Precio:</strong> #{productosControlador.getPrecioFormateado(producto)}</div>
-                                    <div>
-                                        <p:outputLabel value="#{producto.descripcion}" style="display:block; max-height:60px; overflow:hidden;" />
-                                    </div>
-                                </div>
-                            </p:panel>
-                        </p:dataViewGridItem>
+							<p:panel header="#{producto.nombre}" style="height:100%; min-height:260px;">
+								<div style="display:flex; flex-direction:column; gap:10px;">
+									<div style="display:flex; justify-content:center; align-items:center; height:140px; background:#f5f5f5; border-radius:8px; overflow:hidden;">
+										<p:graphicImage value="#{imagenesBean.principal(producto)}"
+											style="width:100%; height:140px; object-fit:cover; display:block;"
+											alt="#{producto.nombre}"/>
+									</div>
+									<div><strong>#{producto.marca}</strong></div>
+									<div><span class="ui-tag">#{productosControlador.obtenerNombreCategoria(producto.codigoCategoria)}</span></div>
+									<div><strong>Código:</strong> #{producto.codigo}</div>
+									<div><strong>Precio:</strong> #{productosControlador.getPrecioFormateado(producto)}</div>
+									<div>
+										<p:outputLabel value="#{producto.descripcion}" style="display:block; max-height:60px; overflow:hidden;" />
+									</div>
+									<p:button value="Ver detalle" outcome="/producto.xhtml" styleClass="ui-button-outlined" style="width:100%;">
+										<f:param name="id" value="#{producto.idProducto}" />
+									</p:button>
+								</div>
+							</p:panel>
+						</p:dataViewGridItem>
 
-                        <p:dataViewListItem>
+						<p:dataViewListItem>
                             <p:panel style="margin-bottom:12px;">
                                 <div class="ui-g">
                                     <div class="ui-g-12 ui-md-2">
-                                        <div style="background:#f5f5f5; border-radius:8px; height:90px; display:flex; align-items:center; justify-content:center; font-size:26px; color:#666;">
-                                            <i class="pi pi-box" />
+                                        <div style="background:#f5f5f5; border-radius:8px; height:90px; display:flex; align-items:center; justify-content:center; overflow:hidden;">
+                                            <p:graphicImage value="#{imagenesBean.principal(producto)}" style="width:100%; height:100%; object-fit:cover; display:block;" alt="#{producto.nombre}"/>
                                         </div>
                                     </div>
                                     <div class="ui-g-12 ui-md-7">
@@ -86,8 +94,8 @@
                                             #{productosControlador.getPrecioFormateado(producto)}
                                         </div>
                                         <p:button value="Ver detalle" outcome="/producto.xhtml" styleClass="ui-button-outlined">
-											<f:param name="id" value="#{producto.idProducto}" />
-										</p:button>
+                                            <f:param name="id" value="#{producto.idProducto}" />
+                                        </p:button>
                                     </div>
                                 </div>
                             </p:panel>

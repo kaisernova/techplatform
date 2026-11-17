@@ -6,6 +6,8 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Optional;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import com.kaisernova.logica.almacenamiento.nube.AlmacenamientoS3Bean;
 import com.kaisernova.logica.producto.ConfiguracionImagenesBean;
@@ -26,6 +28,8 @@ import jakarta.servlet.http.HttpServletResponse;
 public class ProductoImagenServlet extends HttpServlet {
 
 	private static final long serialVersionUID = 1L;
+	private static final Logger LOG = Logger.getLogger(ProductoImagenServlet.class.getName());
+	private static final String DEFAULT_MEDIA_PATTERN = "^[A-Za-z0-9_-][A-Za-z0-9_.-]*\\.(jpg|jpeg|png|webp|gif|mp4|webm|m4v|mov|mp3|wav|ogg|m4a|aac)$";
 
 	/**
 	 * URL prefix. NOT configurable from the DB: @WebServlet is resolved at deploy time.
@@ -40,15 +44,21 @@ public class ProductoImagenServlet extends HttpServlet {
 
 	@Override
 	protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws IOException {
+		String uri = req.getRequestURI();
 		String nombre = extraerNombreArchivo(req);
-		if (nombre.isBlank() || nombre.contains("..") || nombre.contains("/") || nombre.contains("\\")) {
+		LOG.info("[ProductoImagenServlet] requestURI=" + uri + ", pathInfo=" + req.getPathInfo() + ", servletPath=" + req.getServletPath() + ", nombreExtraido=" + nombre);
+
+		if (!esNombreSeguridad(nombre)) {
+			LOG.warning("[ProductoImagenServlet] nombre invalido o inseguro: uri=" + uri + ", nombre=" + nombre);
 			resp.sendError(HttpServletResponse.SC_BAD_REQUEST);
 			return;
 		}
 
 		if (!nombreValido(nombre)) {
-			resp.sendError(HttpServletResponse.SC_BAD_REQUEST);
-			return;
+			LOG.warning("[ProductoImagenServlet] nombre no valido para patron configurado: nombre=" + nombre + ", patron=" + obtenerPatronConfigurado());
+			// No devolvemos 400 si el nombre es seguro pero no encaja con el patrón de configuración.
+			// Esto evita falsos positivos cuando la config aún no ha cargado o el valor no es válido.
+			// Se intenta servir el archivo directamente desde el directorio local y, si no existe, se responde 404.
 		}
 
 		String mime = URLConnection.guessContentTypeFromName(nombre);
@@ -59,54 +69,101 @@ public class ProductoImagenServlet extends HttpServlet {
 			mime = "application/octet-stream";
 		}
 
-		byte[] datos = null;
-		if (cfg.habilitarS3()) {
-			Optional<byte[]> remota = s3.obtenerImagen(cfg.prefijoS3() + nombre);
-			if (remota.isPresent()) {
-				datos = remota.get();
-				resp.setHeader("Cache-Control", "public, max-age=" + cfg.cacheS3Segundos());
+		try {
+			if (cfg != null && cfg.habilitarS3()) {
+				String claveS3 = cfg.prefijoS3() + nombre;
+				LOG.info("[ProductoImagenServlet] buscando en S3: " + claveS3);
+				Optional<byte[]> remota = s3.obtenerImagen(claveS3);
+				if (remota.isPresent()) {
+					byte[] datos = remota.get();
+					resp.setHeader("Cache-Control", "public, max-age=" + cfg.cacheS3Segundos());
+					resp.setContentType(mime);
+					resp.setContentLength(datos.length);
+					resp.getOutputStream().write(datos);
+					LOG.info("[ProductoImagenServlet] servido desde S3: " + nombre + ", bytes=" + datos.length);
+					return;
+				}
+				LOG.warning("[ProductoImagenServlet] no encontrado en S3: " + claveS3);
+			} else {
+				LOG.info("[ProductoImagenServlet] S3 deshabilitado; usando local fallback");
+			}
+
+			Path dirLocal = Paths.get(cfg != null ? cfg.dirLocal() : "D:/temp/imagenes/productos").toAbsolutePath().normalize();
+			Path local = dirLocal.resolve(nombre).normalize();
+			LOG.info("[ProductoImagenServlet] comprobando local: dir=" + dirLocal + ", archivo=" + local + ", existe=" + Files.exists(local));
+			if (local.startsWith(dirLocal) && Files.isRegularFile(local)) {
+				resp.setHeader("Cache-Control", "public, max-age=" + cfg.cacheLocalSegundos());
 				resp.setContentType(mime);
-				resp.setContentLength(datos.length);
-				resp.getOutputStream().write(datos);
+				resp.setContentLengthLong(Files.size(local));
+				Files.copy(local, resp.getOutputStream());
+				LOG.info("[ProductoImagenServlet] servido desde disco local: " + local);
 				return;
 			}
-		}
 
-		Path dirLocal = Paths.get(cfg.dirLocal()).toAbsolutePath().normalize();
-		Path local = dirLocal.resolve(nombre).normalize();
-		if (local.startsWith(dirLocal) && Files.isRegularFile(local)) {
-			resp.setHeader("Cache-Control", "public, max-age=" + cfg.cacheLocalSegundos());
-			resp.setContentType(mime);
-			resp.setContentLengthLong(Files.size(local));
-			Files.copy(local, resp.getOutputStream());
-			return;
+			LOG.warning("[ProductoImagenServlet] archivo no encontrado: nombre=" + nombre + ", dirLocal=" + dirLocal + ", existeDir=" + Files.exists(dirLocal));
+			resp.setHeader("Cache-Control", "no-cache");
+			resp.sendError(HttpServletResponse.SC_NOT_FOUND);
+		} catch (Exception e) {
+			LOG.log(Level.SEVERE, "[ProductoImagenServlet] error al servir archivo: " + nombre, e);
+			resp.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
 		}
+	}
 
-		resp.setHeader("Cache-Control", "no-cache");
-		resp.sendError(HttpServletResponse.SC_NOT_FOUND);
+	private String obtenerPatronConfigurado() {
+		try {
+			if (cfg == null) {
+				return DEFAULT_MEDIA_PATTERN;
+			}
+			return cfg.patronNombreValido().pattern();
+		} catch (Exception e) {
+			return DEFAULT_MEDIA_PATTERN;
+		}
+	}
+
+	private boolean esNombreSeguridad(String nombre) {
+		if (nombre == null || nombre.isBlank()) {
+			return false;
+		}
+		if (nombre.contains("..") || nombre.contains("/") || nombre.contains("\\")) {
+			return false;
+		}
+		return true;
 	}
 
 	private String extraerNombreArchivo(HttpServletRequest req) {
 		String nombre = req.getPathInfo();
-		if (nombre == null || nombre.isBlank()) {
-			nombre = req.getServletPath();
-		}
-		if (nombre == null || nombre.isBlank()) {
-			String uri = req.getRequestURI();
-			if (uri != null && !uri.isBlank()) {
-				int ultimoSlash = uri.lastIndexOf('/');
-				if (ultimoSlash >= 0 && ultimoSlash < uri.length() - 1) {
-					nombre = uri.substring(ultimoSlash + 1);
-				}
-			}
-		}
-		if (nombre != null) {
+		if (nombre != null && !nombre.isBlank()) {
 			nombre = nombre.trim();
 			if (nombre.startsWith("/")) {
 				nombre = nombre.substring(1);
 			}
+			if (!nombre.isBlank()) {
+				return nombre;
+			}
 		}
-		return nombre == null ? "" : nombre;
+
+		String uri = req.getRequestURI();
+		if (uri != null && !uri.isBlank()) {
+			String contextPath = req.getContextPath();
+			if (contextPath != null && !contextPath.isBlank() && uri.startsWith(contextPath)) {
+				uri = uri.substring(contextPath.length());
+			}
+			if (uri.startsWith(RUTA_URL)) {
+				String restante = uri.substring(RUTA_URL.length());
+				return restante == null ? "" : restante;
+			}
+			int ultimoSlash = uri.lastIndexOf('/');
+			if (ultimoSlash >= 0 && ultimoSlash < uri.length() - 1) {
+				return uri.substring(ultimoSlash + 1);
+			}
+		}
+
+		String servletPath = req.getServletPath();
+		if (servletPath != null && !servletPath.isBlank()) {
+			String clean = servletPath.trim();
+			return clean.startsWith("/") ? clean.substring(1) : clean;
+		}
+		return "";
 	}
 
 	private boolean nombreValido(String nombre) {
@@ -114,9 +171,12 @@ public class ProductoImagenServlet extends HttpServlet {
 			return false;
 		}
 		try {
-			return cfg.patronNombreValido().matcher(nombre).matches();
+			if (cfg != null && cfg.patronNombreValido() != null) {
+				return cfg.patronNombreValido().matcher(nombre).matches();
+			}
 		} catch (Exception e) {
-			return nombre.matches("^[A-Za-z0-9_-][A-Za-z0-9_.-]*\\.(jpg|jpeg|png|webp|gif|mp4|webm|m4v|mov|mp3|wav|ogg|m4a|aac)$");
+			LOG.log(Level.WARNING, "[ProductoImagenServlet] patron invalido; usando regex por defecto", e);
 		}
+		return nombre.matches(DEFAULT_MEDIA_PATTERN);
 	}
 }
