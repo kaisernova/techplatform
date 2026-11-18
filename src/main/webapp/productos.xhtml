@@ -15,6 +15,15 @@
     <ui:define name="main">
         <h:form id="formProductos">
             <p:panel header="Productos" styleClass="card-box">
+                <div style="display:flex; justify-content:flex-end; align-items:center; gap:12px; margin-bottom:12px;">
+                    <h:outputText value="#{productosControlador.resultadoImportacion}" rendered="#{not empty productosControlador.resultadoImportacion}" style="color:#666;" />
+                    <p:commandButton value="Importar catálogo"
+                                     actionListener="#{productosControlador.importarCatalogo}"
+                                     process="@this"
+                                     update="productosPanel, @form"
+                                     icon="pi pi-upload"
+                                     styleClass="ui-button-outlined" />
+                </div>
                 <div class="ui-g ui-fluid">
                     <div class="ui-g-12 ui-md-6">
                         <p:inputText id="filtroTexto"

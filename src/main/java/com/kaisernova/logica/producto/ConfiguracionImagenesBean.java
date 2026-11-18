@@ -100,4 +100,8 @@ public class ConfiguracionImagenesBean {
 	public boolean habilitarS3() {
 		return config.getValueAsBoolean(NombreParametroConfiguracion.HABILITAR_S3);
 	}
+
+	public String dirUploadsProductos() {
+		return texto(NombreParametroConfiguracion.UPLOADS_PRODUCTOS_DIR_LOCAL, "D:/temp/uploads/productos");
+	}
 }

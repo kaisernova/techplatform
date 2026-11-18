@@ -73,7 +73,7 @@ public enum NombreParametroConfiguracion {
 	IMAGENES_CACHE_S3_SEGUNDOS,
 	/** NEW. Cache-Control max-age (seconds) for images served from the local fallback. Default: 300 */
 	IMAGENES_CACHE_LOCAL_SEGUNDOS,
-	
+	UPLOADS_PRODUCTOS_DIR_LOCAL,
 	;
 	;
 	

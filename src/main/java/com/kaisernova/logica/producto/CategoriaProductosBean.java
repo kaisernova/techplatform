@@ -34,4 +34,8 @@ public class CategoriaProductosBean {
         return categoriaProductosDao.findAllActivos();
     }
 
+    public CategoriaProductos obtenerPorCodigo(String codigo) {
+        return categoriaProductosDao.obtenerPorCodigo(codigo);
+    }
+
 }

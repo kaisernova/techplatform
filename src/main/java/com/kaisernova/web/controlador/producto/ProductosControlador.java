@@ -5,6 +5,7 @@ import com.kaisernova.logica.producto.OrderDirection;
 import com.kaisernova.logica.producto.OrderField;
 import com.kaisernova.logica.producto.ProductoBean;
 import com.kaisernova.logica.producto.ProductoEnMemoriaBean;
+import com.kaisernova.logica.producto.ImportacionCatalogoProductosBean;
 import com.kaisernova.modelo.producto.CategoriaProductos;
 import com.kaisernova.modelo.producto.Producto;
 import com.kaisernova.web.controlador.BaseControlador;
@@ -37,12 +38,16 @@ public class ProductosControlador extends BaseControlador implements Serializabl
     @Inject
     private ProductoEnMemoriaBean productoEnMemoriaBean;
 
+    @Inject
+    private ImportacionCatalogoProductosBean importacionCatalogoProductosBean;
+
     private List<Producto> productos;
     private List<Producto> productosFiltrados = new ArrayList<>();
     private List<CategoriaProductos> categorias;
     private String filtroTexto = "";
     private String ordenSeleccionado = "NOMBRE_ASC";
     private String layout = "grid";
+    private String resultadoImportacion = "";
 
     @PostConstruct
     public void inicializar() {
@@ -141,6 +146,27 @@ public class ProductosControlador extends BaseControlador implements Serializabl
         return String.format(Locale.US, "$%.2f", producto.getPrecio());
     }
 
+    public void importarCatalogo() {
+        try {
+            var resultado = importacionCatalogoProductosBean.importarUltimosArchivos();
+            resultadoImportacion = resultado.resumen();
+            if (!resultado.errores.isEmpty()) {
+                resultadoImportacion += " | Errores: " + String.join("; ", resultado.errores);
+                fijarMensajeError("Importación con errores", resultadoImportacion);
+            } else {
+                productoEnMemoriaBean.recargar();
+                productos = new ArrayList<>(productoEnMemoriaBean.obtenerTodos());
+                aplicarFiltros();
+                fijarMensaje("Catálogo importado", resultadoImportacion);
+            }
+            logger.info("[ProductosControlador] importarCatalogo: " + resultadoImportacion);
+        } catch (Exception e) {
+            logger.log(java.util.logging.Level.SEVERE, "[ProductosControlador] error ejecutando importación", e);
+            resultadoImportacion = "Error ejecutando la importación: " + e.getMessage();
+            fijarMensajeError("Error en importación", resultadoImportacion);
+        }
+    }
+
     public List<Producto> getProductos() {
         return productos;
     }
@@ -187,5 +213,9 @@ public class ProductosControlador extends BaseControlador implements Serializabl
 
     public void setLayout(String layout) {
         this.layout = layout;
+    }
+
+    public String getResultadoImportacion() {
+        return resultadoImportacion;
     }
 }

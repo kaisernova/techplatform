@@ -75,8 +75,15 @@ public class ImagenesProductoBean {
 
 	public String principal(Producto producto) {
 		List<String> nombres = nombres(producto);
-		String valor = nombres.isEmpty() ? placeholder() : url(nombres.get(0));
-		LOG.info("[ImagenesProductoBean] principal para producto id=" + (producto == null ? null : producto.getIdProducto()) + ": " + valor);
+		if (nombres.isEmpty()) {
+			String valor = placeholder();
+			LOG.info("[ImagenesProductoBean] principal para producto id=" + (producto == null ? null : producto.getIdProducto()) + ": " + valor);
+			return valor;
+		}
+		String primera = nombres.get(0);
+		String thumb = obtenerNombreThumbnail(primera);
+		String valor = url(thumb);
+		LOG.info("[ImagenesProductoBean] principal/thum para producto id=" + (producto == null ? null : producto.getIdProducto()) + ": " + valor);
 		return valor;
 	}
 
@@ -110,5 +117,14 @@ public class ImagenesProductoBean {
 		String contextPath = facesContext.getExternalContext().getRequestContextPath();
 		LOG.info("[ImagenesProductoBean] contextPath=" + contextPath);
 		return contextPath;
+	}
+
+	private String obtenerNombreThumbnail(String nombreOriginal) {
+		if (nombreOriginal == null) return "";
+		int dot = nombreOriginal.lastIndexOf('.');
+		if (dot <= 0) return nombreOriginal;
+		String base = nombreOriginal.substring(0, dot);
+		String extension = nombreOriginal.substring(dot);
+		return base + "_thumb" + extension;
 	}
 }

@@ -74,6 +74,12 @@ public class ProductoImagenServlet extends HttpServlet {
 				String claveS3 = cfg.prefijoS3() + nombre;
 				LOG.info("[ProductoImagenServlet] buscando en S3: " + claveS3);
 				Optional<byte[]> remota = s3.obtenerImagen(claveS3);
+				if (!remota.isPresent() && nombre.contains("_thumb.")) {
+					String original = nombre.replaceFirst("_thumb(?=\\.[^.]+$)", "");
+					String claveOriginal = cfg.prefijoS3() + original;
+					LOG.info("[ProductoImagenServlet] thumbnail no encontrado en S3; intentando original: " + claveOriginal);
+					remota = s3.obtenerImagen(claveOriginal);
+				}
 				if (remota.isPresent()) {
 					byte[] datos = remota.get();
 					resp.setHeader("Cache-Control", "public, max-age=" + cfg.cacheS3Segundos());
@@ -90,6 +96,11 @@ public class ProductoImagenServlet extends HttpServlet {
 
 			Path dirLocal = Paths.get(cfg != null ? cfg.dirLocal() : "D:/temp/imagenes/productos").toAbsolutePath().normalize();
 			Path local = dirLocal.resolve(nombre).normalize();
+			if (!(local.startsWith(dirLocal) && Files.isRegularFile(local)) && nombre.contains("_thumb.")) {
+				String original = nombre.replaceFirst("_thumb(?=\\.[^.]+$)", "");
+				local = dirLocal.resolve(original).normalize();
+				LOG.info("[ProductoImagenServlet] thumbnail no encontrado local; intentando original: " + local);
+			}
 			LOG.info("[ProductoImagenServlet] comprobando local: dir=" + dirLocal + ", archivo=" + local + ", existe=" + Files.exists(local));
 			if (local.startsWith(dirLocal) && Files.isRegularFile(local)) {
 				resp.setHeader("Cache-Control", "public, max-age=" + cfg.cacheLocalSegundos());

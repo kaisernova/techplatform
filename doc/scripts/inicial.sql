@@ -92,4 +92,43 @@ INSERT INTO configuracion.configuracion (
     ('IMAGENES_PLACEHOLDER', '/resources/img/sin-imagen.png', 'URL de imagen placeholder', 'STRING', NULL, 'system', 'system', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, TRUE),
     ('IMAGENES_PATRON_NOMBRE_VALIDO', '^[A-Za-z0-9_-][A-Za-z0-9_.-]*\\.(jpg|jpeg|png|webp|gif|mp4|webm|m4v|mov|mp3|wav|ogg|m4a|aac)$', 'Regex para validar nombres de archivos multimedia', 'STRING', NULL, 'system', 'system', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, TRUE),
     ('IMAGENES_CACHE_S3_SEGUNDOS', '86400', 'Cache-Control max-age para media servida desde S3', 'INTEGER', NULL, 'system', 'system', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, TRUE),
-    ('IMAGENES_CACHE_LOCAL_SEGUNDOS', '300', 'Cache-Control max-age para media servida desde disco local', 'INTEGER', NULL, 'system', 'system', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, TRUE);
+    ('IMAGENES_CACHE_LOCAL_SEGUNDOS', '300', 'Cache-Control max-age para media servida desde disco local', 'INTEGER', NULL, 'system', 'system', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, TRUE),
+    ('UPLOADS_PRODUCTOS_DIR_LOCAL', 'D:/temp/uploads/productos', 'Directorio servidor para XLSX y ZIP masivos de productos', 'STRING', NULL, 'system', 'system', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, TRUE);
+
+-- Categoría predeterminada para productos provenientes del catálogo masivo.
+INSERT INTO productos.categoria_productos (
+    id_categoria_productos,
+    codigo,
+    nombre,
+    descripcion,
+    codigo_padre,
+    fecha_hora_creacion,
+    fecha_hora_actualizacion,
+    usuario_crea,
+    usuario_actualiza,
+    activo
+)
+SELECT
+    COALESCE((SELECT MAX(id_categoria_productos) + 1 FROM productos.categoria_productos), 1),
+    'TEC',
+    'Tecnología',
+    'Categoría predeterminada para productos importados desde XLSX y ZIP',
+    NULL,
+    CURRENT_TIMESTAMP,
+    CURRENT_TIMESTAMP,
+    'system',
+    'system',
+    TRUE
+WHERE NOT EXISTS (
+    SELECT 1 FROM productos.categoria_productos
+    WHERE codigo = 'TEC'
+);
+
+DO $$
+BEGIN
+    IF EXISTS (SELECT 1 FROM pg_sequences WHERE schemaname = 'public' AND sequencename = 'id_categoria_productos_seq') THEN
+        PERFORM setval('public.id_categoria_productos_seq',
+                       (SELECT COALESCE(MAX(id_categoria_productos), 1) FROM productos.categoria_productos),
+                       true);
+    END IF;
+END $$;

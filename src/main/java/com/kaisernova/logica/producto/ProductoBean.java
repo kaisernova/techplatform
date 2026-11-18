@@ -36,4 +36,8 @@ public class ProductoBean {
         return productoDao.findAllActivos();
     }
 
+    public Producto obtenerPorCodigo(String codigo) {
+        return productoDao.obtenerPorCodigo(codigo);
+    }
+
 }
